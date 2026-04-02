@@ -229,7 +229,8 @@ def admin_editar(livro_id):
     if not livro:
         return jsonify({'ok': False, 'erro': 'Não encontrado'}), 404
     campos = ['titulo','autor','ano','editora','categoria','sinopse','capa_url',
-              'serie','num_serie','badge','publicado','destaque','slug']
+              'serie','num_serie','badge','publicado','destaque','slug',
+              'paginas','paginas_texto']
     for c in campos:
         if c in d:
             livro[c] = d[c]
@@ -342,6 +343,25 @@ def admin_upload_capa(livro_id):
 
     return jsonify({'ok': False, 'erro': 'Storage não configurado'}), 500
 
+
+@app.route('/api/admin/alterar_senha', methods=['POST'])
+def admin_alterar_senha():
+    """Altera a senha do admin."""
+    global ADMIN_SENHA
+    if not verificar_admin():
+        return jsonify({'ok': False, 'erro': 'Não autorizado'}), 401
+    d = request.get_json() or {}
+    senha_atual = d.get('senha_atual', '')
+    senha_nova  = d.get('senha_nova', '')
+    if not senha_nova or len(senha_nova) < 6:
+        return jsonify({'ok': False, 'erro': 'Nova senha muito curta'}), 400
+    if hashlib.sha256(senha_atual.encode()).hexdigest() != hashlib.sha256(ADMIN_SENHA.encode()).hexdigest():
+        return jsonify({'ok': False, 'erro': 'Senha atual incorreta'}), 401
+    # Salvar nova senha como variável de ambiente (persiste no Railway via env var)
+    ADMIN_SENHA = senha_nova
+    os.environ['ADMIN_SENHA'] = senha_nova
+    novo_token = hashlib.sha256(senha_nova.encode()).hexdigest()
+    return jsonify({'ok': True, 'token': novo_token})
 
 # ── ADMIN HTML ─────────────────────────────────────────────────────
 @app.route('/admin')

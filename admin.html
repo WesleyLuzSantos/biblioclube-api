@@ -93,11 +93,14 @@ body{font-family:var(--sans);background:var(--void);color:var(--paper);min-heigh
 
 /* UPLOAD */
 .upload-area{
-  border:1.5px dashed var(--edge);border-radius:6px;padding:2rem;text-align:center;cursor:pointer;
+  border:1.5px dashed var(--edge);border-radius:6px;padding:1.5rem;text-align:center;cursor:pointer;
   transition:border-color .2s;margin-top:.5rem;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4rem;
+  min-height:90px;
 }
 .upload-area:hover{border-color:var(--ember)}
-.upload-area p{font-size:.82rem;color:var(--dim);margin-top:.5rem}
+.upload-area svg{color:var(--dim);opacity:.6}
+.upload-area p{font-size:.78rem;color:var(--dim);margin:0}
 .upload-area input{display:none}
 .upload-progress{display:none;margin-top:1rem}
 .prog-bar{height:4px;background:var(--edge);border-radius:2px;overflow:hidden;margin-top:.4rem}
@@ -143,6 +146,7 @@ body{font-family:var(--sans);background:var(--void);color:var(--paper);min-heigh
     </div>
     <div style="display:flex;gap:.5rem">
       <a href="/" target="_blank" class="btn-sm">Ver site ↗</a>
+      <button class="btn-sm" onclick="abrirModalSenha()">Alterar senha</button>
       <button class="btn-sm danger" onclick="logout()">Sair</button>
     </div>
   </div>
@@ -251,6 +255,34 @@ body{font-family:var(--sans);background:var(--void);color:var(--paper);min-heigh
     <div class="modal-footer">
       <button class="btn-sm" onclick="fecharModal()">Cancelar</button>
       <button class="btn-sm btn-primary" onclick="salvarLivro()">Salvar livro</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ALTERAR SENHA -->
+<div class="modal-overlay" id="modal-senha">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-header">
+      <div class="modal-title">Alterar Senha</div>
+      <button class="modal-close" onclick="fecharModalSenha()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg" style="margin-bottom:.8rem">
+        <label>Senha atual</label>
+        <input type="password" id="senha-atual" placeholder="••••••••">
+      </div>
+      <div class="fg" style="margin-bottom:.8rem">
+        <label>Nova senha</label>
+        <input type="password" id="senha-nova" placeholder="••••••••">
+      </div>
+      <div class="fg">
+        <label>Confirmar nova senha</label>
+        <input type="password" id="senha-confirma" placeholder="••••••••">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="fecharModalSenha()">Cancelar</button>
+      <button class="btn-sm btn-primary" onclick="alterarSenha()">Salvar nova senha</button>
     </div>
   </div>
 </div>
@@ -488,6 +520,40 @@ function toast(msg, tipo='ok'){
   const t=document.getElementById('toast');
   t.textContent=msg; t.className='toast show '+(tipo==='err'?'err':'ok');
   setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── ALTERAR SENHA ─────────────────────────────────────────
+function abrirModalSenha(){
+  document.getElementById('senha-atual').value='';
+  document.getElementById('senha-nova').value='';
+  document.getElementById('senha-confirma').value='';
+  document.getElementById('modal-senha').classList.add('open');
+}
+function fecharModalSenha(){
+  document.getElementById('modal-senha').classList.remove('open');
+}
+async function alterarSenha(){
+  const atual    = document.getElementById('senha-atual').value;
+  const nova     = document.getElementById('senha-nova').value;
+  const confirma = document.getElementById('senha-confirma').value;
+  if(!atual||!nova||!confirma){ toast('Preencha todos os campos','err'); return; }
+  if(nova !== confirma){ toast('As senhas não coincidem','err'); return; }
+  if(nova.length < 6){ toast('A nova senha deve ter pelo menos 6 caracteres','err'); return; }
+  const r = await fetch(API+'/api/admin/alterar_senha',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','X-Admin-Token':TOKEN},
+    body: JSON.stringify({senha_atual: atual, senha_nova: nova})
+  });
+  const d = await r.json();
+  if(d.ok){
+    // Atualizar token com nova senha
+    TOKEN = d.token;
+    localStorage.setItem('bc_admin_token', TOKEN);
+    toast('Senha alterada com sucesso!','ok');
+    fecharModalSenha();
+  } else {
+    toast(d.erro||'Erro ao alterar senha','err');
+  }
 }
 
 // ── INIT ──────────────────────────────────────────────────
