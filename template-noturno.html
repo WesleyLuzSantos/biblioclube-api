@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BiblioClube — A biblioteca que cabe no bolso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --void:#080706;
+  --deep:#0e0c0a;
+  --layer:#141210;
+  --surface:#1c1916;
+  --edge:#2a2520;
+  --dim:#3d3530;
+  --fog:rgba(255,248,230,.08);
+  --mist:rgba(255,248,230,.15);
+  --smoke:rgba(255,248,230,.35);
+  --ash:rgba(255,248,230,.55);
+  --parch:rgba(255,248,230,.78);
+  --paper:#fff8e6;
+  --ember:#c45c2a;
+  --flame:#e07040;
+  --gold:#c9943a;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --display:'Syne',system-ui,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--display);background:var(--void);color:var(--paper);overflow-x:hidden;line-height:1.6;cursor:default}
+
+/* ── GRAIN OVERLAY ── */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity:.4;
+}
+
+/* ── HEADER ── */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  padding:1.25rem 3rem;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--fog);
+  background:rgba(8,7,6,.85);
+  backdrop-filter:blur(20px);
+}
+.logo{
+  font-family:var(--serif);font-size:1.6rem;font-weight:300;
+  letter-spacing:.5px;color:var(--paper);text-decoration:none;
+  display:flex;align-items:center;gap:.5rem;
+}
+.logo b{font-weight:700;color:var(--ember)}
+.logo-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--ember);margin:0 .1rem;
+  box-shadow:0 0 8px var(--ember);
+}
+nav{display:flex;align-items:center;gap:2.5rem}
+nav a{
+  font-size:.72rem;font-weight:600;letter-spacing:2px;
+  text-transform:uppercase;color:var(--ash);
+  text-decoration:none;transition:color .2s;
+}
+nav a:hover{color:var(--paper)}
+.nav-cta{
+  font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--void);background:var(--paper);
+  padding:.5rem 1.4rem;border-radius:2px;text-decoration:none;
+  transition:all .2s;
+}
+.nav-cta:hover{background:var(--ember);color:var(--paper)}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:8rem 2rem 4rem;
+  position:relative;z-index:1;
+}
+.hero-num{
+  font-family:var(--serif);font-size:clamp(8rem,20vw,18rem);
+  font-weight:700;font-style:italic;
+  line-height:.85;
+  color:transparent;
+  -webkit-text-stroke:1px rgba(255,248,230,.08);
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  pointer-events:none;white-space:nowrap;
+  user-select:none;
+}
+.hero-eyebrow{
+  font-size:.68rem;font-weight:600;letter-spacing:3.5px;text-transform:uppercase;
+  color:var(--ember);margin-bottom:1.5rem;
+  display:flex;align-items:center;gap:.75rem;
+}
+.hero-eyebrow::before,.hero-eyebrow::after{
+  content:'';display:block;width:32px;height:1px;background:var(--ember);opacity:.5;
+}
+.hero-title{
+  font-family:var(--serif);
+  font-size:clamp(3.5rem,8vw,7.5rem);
+  font-weight:300;line-height:1.0;
+  letter-spacing:-1px;
+  color:var(--paper);
+  margin-bottom:.5rem;
+}
+.hero-title em{
+  font-style:italic;font-weight:700;
+  color:var(--ember);display:block;
+}
+.hero-title span{
+  font-size:clamp(1.2rem,3vw,2.2rem);
+  font-weight:300;color:var(--ash);
+  display:block;margin-top:.5rem;letter-spacing:1px;
+}
+.hero-sub{
+  font-size:1rem;color:var(--smoke);line-height:1.8;
+  max-width:480px;margin:2rem auto 3rem;
+  font-weight:400;
+}
+.hero-actions{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+.btn-ghost{
+  font-family:var(--display);font-size:.72rem;font-weight:700;
+  letter-spacing:2.5px;text-transform:uppercase;
+  padding:.85rem 2.5rem;border-radius:2px;
+  text-decoration:none;transition:all .3s;
+  border:1px solid rgba(255,248,230,.2);color:var(--parch);
+  background:transparent;cursor:pointer;
+}
+.btn-ghost:hover{border-color:var(--paper);color:var(--paper);background:var(--fog)}
+.btn-filled{
+  font-family:var(--display);font-size:.72rem;font-weight:700;
+  letter-spacing:2.5px;text-transform:uppercase;
+  padding:.85rem 2.5rem;border-radius:2px;
+  text-decoration:none;transition:all .3s;
+  border:1px solid var(--ember);color:var(--paper);
+  background:var(--ember);cursor:pointer;
+}
+.btn-filled:hover{background:var(--flame);border-color:var(--flame)}
+.hero-scroll{
+  position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:.5rem;
+  color:var(--dim);font-size:.62rem;letter-spacing:2px;text-transform:uppercase;
+  font-family:var(--display);font-weight:600;
+}
+.scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,var(--dim),transparent)}
+
+/* ── MARQUEE ── */
+.marquee-wrap{
+  border-top:1px solid var(--fog);border-bottom:1px solid var(--fog);
+  background:var(--deep);padding:1rem 0;overflow:hidden;
+  position:relative;z-index:1;
+}
+.marquee-track{
+  display:flex;gap:0;white-space:nowrap;
+  animation:marquee 30s linear infinite;
+}
+.marquee-item{
+  font-family:var(--serif);font-size:1.1rem;font-weight:300;font-style:italic;
+  color:var(--smoke);padding:0 2rem;
+  display:flex;align-items:center;gap:2rem;
+}
+.marquee-sep{
+  display:inline-block;width:4px;height:4px;border-radius:50%;
+  background:var(--ember);opacity:.5;
+}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ── BUSCA ── */
+.search-section{
+  padding:5rem 2rem;background:var(--deep);
+  position:relative;z-index:1;
+}
+.search-inner{max-width:780px;margin:0 auto;text-align:center}
+.search-title{
+  font-family:var(--serif);font-size:clamp(1.8rem,3.5vw,2.8rem);
+  font-weight:300;color:var(--paper);margin-bottom:.5rem;
+}
+.search-title em{font-style:italic;color:var(--ember)}
+.search-sub{font-size:.85rem;color:var(--smoke);margin-bottom:2rem;letter-spacing:.5px}
+.search-box{
+  display:flex;gap:0;
+  border:1px solid var(--edge);border-radius:3px;
+  background:var(--layer);overflow:hidden;
+  transition:border-color .2s;
+  max-width:600px;margin:0 auto;
+}
+.search-box:focus-within{border-color:rgba(255,248,230,.25)}
+.search-icon{
+  width:52px;display:flex;align-items:center;justify-content:center;
+  color:var(--dim);flex-shrink:0;
+}
+.search-input{
+  flex:1;background:transparent;border:none;outline:none;
+  font-family:var(--serif);font-size:1.1rem;font-weight:300;font-style:italic;
+  color:var(--paper);padding:.9rem .5rem;
+}
+.search-input::placeholder{color:var(--dim)}
+.search-btn{
+  font-family:var(--display);font-size:.68rem;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;
+  padding:.9rem 1.75rem;background:var(--ember);color:var(--paper);
+  border:none;cursor:pointer;transition:background .2s;flex-shrink:0;
+}
+.search-btn:hover{background:var(--flame)}
+.search-results{
+  max-width:600px;margin:.5rem auto 0;
+  text-align:left;display:none;
+}
+.search-result-item{
+  padding:.75rem 1rem;border-bottom:1px solid var(--fog);
+  cursor:pointer;transition:background .15s;display:flex;align-items:center;gap:1rem;
+  background:var(--layer);
+}
+.search-result-item:hover{background:var(--surface)}
+.sri-cover{
+  width:32px;height:46px;border-radius:2px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:.5rem;
+  color:rgba(255,255,255,.5);
+}
+.sri-title{font-family:var(--serif);font-size:.95rem;font-style:italic;color:var(--parch)}
+.sri-author{font-size:.7rem;color:var(--smoke);letter-spacing:.5px;margin-top:.1rem}
+.sri-cat{font-size:.6rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ember);margin-top:.2rem}
+.search-empty{padding:1rem;text-align:center;font-family:var(--serif);font-style:italic;color:var(--dim);font-size:.9rem;background:var(--layer)}
+
+/* ── ACERVO ── */
+.acervo-section{padding:5rem 2rem;position:relative;z-index:1}
+.acervo-inner{max-width:1280px;margin:0 auto}
+.acervo-header{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  margin-bottom:3rem;flex-wrap:wrap;gap:1.5rem;
+}
+.ah-left .eyebrow{
+  font-size:.65rem;font-weight:600;letter-spacing:3px;text-transform:uppercase;
+  color:var(--ember);margin-bottom:.5rem;
+}
+.ah-left .title{
+  font-family:var(--serif);font-size:clamp(2rem,4vw,3.2rem);
+  font-weight:300;color:var(--paper);line-height:1.1;
+}
+.ah-left .title em{font-style:italic;font-weight:700}
+.cats-scroll{display:flex;gap:.5rem;overflow-x:auto;scrollbar-width:none;padding-bottom:.25rem}
+.cats-scroll::-webkit-scrollbar{display:none}
+.cat-btn{
+  flex-shrink:0;font-family:var(--display);font-size:.65rem;font-weight:600;
+  letter-spacing:1.5px;text-transform:uppercase;
+  padding:.4rem 1.1rem;border-radius:1px;
+  border:1px solid var(--edge);color:var(--smoke);
+  background:transparent;cursor:pointer;transition:all .2s;white-space:nowrap;
+}
+.cat-btn:hover{border-color:var(--ash);color:var(--paper)}
+.cat-btn.on{border-color:var(--ember);color:var(--ember);background:rgba(196,92,42,.08)}
+
+/* BOOK GRID — Large editorial cards */
+.books-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(175px,1fr));
+  gap:1px;background:var(--fog);
+  border:1px solid var(--fog);
+}
+.book-card{
+  background:var(--deep);padding:0;cursor:pointer;
+  transition:background .2s;
+  display:flex;flex-direction:column;
+}
+.book-card:hover{background:var(--layer)}
+.book-cover{
+  width:100%;aspect-ratio:2/3;
+  position:relative;overflow:hidden;
+}
+.book-cover-art{
+  width:100%;height:100%;
+  display:flex;flex-direction:column;
+  align-items:flex-start;justify-content:flex-end;
+  padding:1rem;
+  position:relative;
+}
+.cover-title{
+  font-family:var(--serif);font-size:.88rem;font-weight:700;
+  color:rgba(255,255,255,.95);line-height:1.25;
+  position:relative;z-index:1;
+}
+.cover-author{
+  font-size:.62rem;color:rgba(255,255,255,.5);
+  margin-top:.25rem;position:relative;z-index:1;
+  letter-spacing:.5px;
+}
+.cover-stripe{
+  position:absolute;left:0;top:0;bottom:0;width:4px;
+}
+.book-meta{
+  padding:.85rem 1rem;border-top:1px solid var(--fog);
+  flex:1;display:flex;flex-direction:column;justify-content:space-between;
+}
+.bm-title{font-family:var(--serif);font-size:.82rem;font-style:italic;color:var(--parch);line-height:1.3}
+.bm-author{font-size:.65rem;color:var(--smoke);margin-top:.2rem;letter-spacing:.3px}
+.bm-cat{
+  display:inline-block;margin-top:.6rem;font-size:.55rem;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;color:var(--ember);
+}
+.book-badge-abs{
+  position:absolute;top:.6rem;right:.6rem;
+  font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  padding:3px 8px;background:rgba(8,7,6,.7);color:rgba(255,248,230,.7);
+  backdrop-filter:blur(4px);border-radius:1px;
+}
+.book-badge-abs.s{background:rgba(196,92,42,.7);color:rgba(255,248,230,.9)}
+.book-badge-abs.m{background:rgba(40,40,100,.7);color:rgba(200,200,255,.9)}
+.book-badge-abs.g{background:rgba(20,80,40,.7);color:rgba(150,255,180,.9)}
+
+/* ── READER STRIP ── */
+.reader-strip{
+  background:var(--layer);border-top:1px solid var(--fog);border-bottom:1px solid var(--fog);
+  padding:5rem 2rem;position:relative;z-index:1;overflow:hidden;
+}
+.reader-strip::before{
+  content:'';position:absolute;right:-100px;top:-100px;
+  width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(circle,rgba(196,92,42,.06) 0%,transparent 70%);
+}
+.reader-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
+.rt-eyebrow{font-size:.65rem;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--ember);margin-bottom:.75rem}
+.rt-title{font-family:var(--serif);font-size:clamp(2rem,4vw,3rem);font-weight:300;color:var(--paper);line-height:1.1;margin-bottom:1.5rem}
+.rt-title em{font-style:italic;font-weight:700}
+.rt-feats{display:flex;flex-direction:column;gap:.85rem;margin-top:2rem}
+.rt-feat{display:flex;align-items:flex-start;gap:.9rem}
+.rt-feat-icon{
+  width:2px;height:100%;min-height:36px;
+  background:linear-gradient(to bottom,var(--ember),transparent);
+  flex-shrink:0;margin-top:.3rem;
+}
+.rt-feat-name{font-size:.82rem;font-weight:600;color:var(--parch);letter-spacing:.5px}
+.rt-feat-desc{font-size:.74rem;color:var(--smoke);margin-top:.15rem;line-height:1.5}
+
+/* Reader mockup — terminal style */
+.reader-mock{
+  border:1px solid var(--edge);border-radius:4px;overflow:hidden;
+  background:var(--void);
+}
+.rm-chrome{
+  background:var(--surface);padding:.65rem 1rem;
+  display:flex;align-items:center;gap:.5rem;
+  border-bottom:1px solid var(--edge);
+}
+.rm-dot{width:8px;height:8px;border-radius:50%}
+.rm-title{flex:1;text-align:center;font-size:.7rem;letter-spacing:1px;color:var(--dim);font-weight:600}
+.rm-body{padding:2rem 2.5rem;font-family:var(--serif);font-size:1.05rem;font-weight:300;line-height:2;color:var(--parch)}
+.rm-chapter{font-size:.62rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--ember);display:block;margin-bottom:1.5rem}
+.rm-body p+p{margin-top:1rem}
+.rm-footer{
+  background:var(--surface);border-top:1px solid var(--edge);
+  padding:.6rem 1rem;display:flex;align-items:center;gap:1rem;
+}
+.rm-prog{flex:1;height:2px;background:var(--edge);border-radius:1px;overflow:hidden}
+.rm-fill{width:18%;height:100%;background:var(--ember)}
+.rm-pct{font-size:.65rem;color:var(--dim);letter-spacing:.5px}
+
+/* ── CATEGORIES FULL ── */
+.cat-full{padding:5rem 2rem;position:relative;z-index:1}
+.cat-full-inner{max-width:1280px;margin:0 auto}
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--fog);border:1px solid var(--fog);margin-top:3rem}
+.cat-item{
+  background:var(--deep);padding:3rem 2.5rem;
+  cursor:pointer;transition:background .2s;
+  display:flex;flex-direction:column;justify-content:flex-end;min-height:200px;
+  position:relative;overflow:hidden;
+}
+.cat-item:hover{background:var(--surface)}
+.cat-item::before{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:3px;
+  background:var(--ember);transform:scaleX(0);transform-origin:left;
+  transition:transform .3s;
+}
+.cat-item:hover::before{transform:scaleX(1)}
+.ci-num{
+  position:absolute;top:1.5rem;right:1.5rem;
+  font-family:var(--serif);font-size:3.5rem;font-weight:700;font-style:italic;
+  color:rgba(255,248,230,.04);line-height:1;
+}
+.ci-icon{font-size:1.5rem;margin-bottom:1rem;opacity:.6}
+.ci-name{font-family:var(--serif);font-size:1.4rem;font-weight:300;color:var(--paper);margin-bottom:.3rem}
+.ci-name em{font-style:italic;font-weight:700}
+.ci-count{font-size:.65rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--smoke)}
+
+/* ── FOOTER ── */
+footer{
+  background:var(--deep);border-top:1px solid var(--fog);
+  padding:4rem 3rem 2rem;position:relative;z-index:1;
+}
+.footer-inner{max-width:1280px;margin:0 auto}
+.footer-top{display:grid;grid-template-columns:2.5fr 1fr 1fr 1fr;gap:3rem;padding-bottom:2.5rem;border-bottom:1px solid var(--fog)}
+.footer-brand .fl-logo{font-family:var(--serif);font-size:1.8rem;font-weight:300;color:var(--paper)}
+.footer-brand .fl-logo b{font-weight:700;color:var(--ember)}
+.footer-brand p{font-size:.82rem;color:var(--smoke);margin-top:.6rem;line-height:1.7;max-width:260px}
+.fc-head{font-size:.62rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--dim);margin-bottom:1rem}
+.fc-links{display:flex;flex-direction:column;gap:.5rem}
+.fc-links a{font-size:.82rem;color:var(--smoke);text-decoration:none;transition:color .2s;letter-spacing:.2px}
+.fc-links a:hover{color:var(--paper)}
+.footer-bottom{padding-top:1.5rem;display:flex;justify-content:space-between;font-size:.7rem;color:var(--dim);letter-spacing:.5px}
+
+/* ── BOOK EXPAND OVERLAY ── */
+.book-overlay{
+  position:fixed;inset:0;z-index:500;
+  background:rgba(8,7,6,.0);
+  transition:background .3s;
+  pointer-events:none;
+}
+.book-overlay.active{
+  background:rgba(8,7,6,.75);
+  pointer-events:all;
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+}
+.book-expanded{
+  position:fixed;z-index:600;
+  width:320px;
+  border:1px solid var(--edge);
+  border-radius:4px;
+  overflow:hidden;
+  background:var(--deep);
+  box-shadow:0 32px 80px rgba(0,0,0,.8);
+  opacity:0;
+  transform:scale(.92) translateY(8px);
+  transition:opacity .3s cubic-bezier(.34,1.2,.64,1), transform .3s cubic-bezier(.34,1.2,.64,1);
+  pointer-events:none;
+}
+.book-expanded.show{
+  opacity:1;transform:scale(1) translateY(0);pointer-events:all;
+}
+.be-cover{
+  width:100%;height:200px;
+  display:flex;flex-direction:column;
+  align-items:flex-start;justify-content:flex-end;
+  padding:1.25rem;position:relative;
+}
+.be-cover-stripe{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--ember)}
+.be-badge{
+  position:absolute;top:.75rem;right:.75rem;
+  font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  padding:3px 8px;background:rgba(8,7,6,.7);color:rgba(255,248,230,.8);border-radius:1px;
+}
+.be-title{font-family:var(--serif);font-size:1.1rem;font-weight:700;color:#fff;line-height:1.25;position:relative;z-index:1}
+.be-author{font-size:.7rem;color:rgba(255,255,255,.55);margin-top:.25rem;position:relative;z-index:1;letter-spacing:.5px}
+.be-body{padding:1.25rem}
+.be-meta{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.9rem}
+.be-tag{
+  font-size:.6rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  padding:3px 9px;border:1px solid var(--edge);color:var(--smoke);border-radius:1px;
+}
+.be-tag.cat{border-color:rgba(196,92,42,.4);color:var(--ember)}
+.be-sinopse{
+  font-family:var(--serif);font-size:.88rem;font-style:italic;
+  color:var(--ash);line-height:1.7;
+  display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;
+  margin-bottom:1rem;
+}
+.be-footer{
+  border-top:1px solid var(--fog);padding-top:.9rem;
+  display:flex;gap:.6rem;
+}
+.be-btn-read{
+  flex:1;font-family:var(--display);font-size:.65rem;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;
+  padding:.6rem;background:var(--ember);color:var(--paper);
+  border:none;cursor:pointer;border-radius:2px;transition:background .2s;
+}
+.be-btn-read:hover{background:var(--flame)}
+.be-btn-close{
+  font-family:var(--display);font-size:.65rem;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;
+  padding:.6rem .9rem;background:transparent;color:var(--smoke);
+  border:1px solid var(--edge);cursor:pointer;border-radius:2px;transition:all .2s;
+}
+.be-btn-close:hover{border-color:var(--ash);color:var(--paper)}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  header{padding:1rem 1.5rem}
+  nav{display:none}
+  .hero{padding:7rem 1.5rem 4rem}
+  .reader-grid{grid-template-columns:1fr}
+  .cat-grid{grid-template-columns:1fr 1fr}
+  .footer-top{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  .books-grid{grid-template-columns:repeat(2,1fr)}
+  .cat-grid{grid-template-columns:1fr}
+  .footer-top{grid-template-columns:1fr}
+  .footer-bottom{flex-direction:column;gap:.5rem}
+  .acervo-header{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+
+<!-- OVERLAY + CARD EXPANDIDO -->
+<div class="book-overlay" id="book-overlay" onclick="fecharCard()"></div>
+<div class="book-expanded" id="book-expanded">
+  <div class="be-cover" id="be-cover">
+    <div class="be-cover-stripe"></div>
+    <span class="be-badge" id="be-badge" style="display:none"></span>
+    <div class="be-title" id="be-title"></div>
+    <div class="be-author" id="be-author"></div>
+  </div>
+  <div class="be-body">
+    <div class="be-meta" id="be-meta"></div>
+    <div class="be-sinopse" id="be-sinopse"></div>
+    <div class="be-footer">
+      <button class="be-btn-read" onclick="abrirLivro(window._cardAtivo)">Ler agora</button>
+      <button class="be-btn-close" onclick="fecharCard()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <a href="/" class="logo">Biblio<b>Clube</b><span class="logo-dot"></span></a>
+  <nav>
+    <a href="#acervo">Acervo</a>
+    <a href="#categorias">Categorias</a>
+    <a href="#leitor">Leitor</a>
+  </nav>
+  <a href="#busca" class="nav-cta">Começar a ler</a>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-num">60</div>
+  <div class="hero-eyebrow">Gratuito · Sem cadastro · Para sempre</div>
+  <h1 class="hero-title">
+    A biblioteca
+    <em>que cabe no bolso</em>
+    <span>Leia mais. Viva mais.</span>
+  </h1>
+  <p class="hero-sub">Os maiores clássicos da literatura mundial, sagas épicas, mangás e gibis — inteiramente gratuitos, direto no seu navegador.</p>
+  <div class="hero-actions">
+    <a href="#acervo" class="btn-filled">Explorar o acervo</a>
+    <a href="#leitor" class="btn-ghost">Como funciona</a>
+  </div>
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <span>Rolar</span>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <div class="marquee-item">Dom Casmurro <span class="marquee-sep"></span></div>
+    <div class="marquee-item">Crime e Castigo <span class="marquee-sep"></span></div>
+    <div class="marquee-item">O Conde de Monte Cristo <span class="marquee-sep"></span></div>
+    <div class="marquee-item">Drácula <span class="marquee-sep"></span></div>
+    <div class="marquee-item">1984 <span class="marquee-sep"></span></div>
+    <div class="marquee-item">Sherlock Holmes <span class="marquee-sep"></span></div>
+    <div class="marquee-item">Os Miseráveis <span class="marquee-sep"></span></div>
+    <div class="marquee-item">A Arte da Guerra <span class="marquee-sep"></span></div>
+    <div class="marquee-item">Frankenstein <span class="marquee-sep"></span></div>
+    <div class="marquee-item">Arsène Lupin <span class="marquee-sep"></span></div>
+    <div class="marquee-item">Orgulho e Preconceito <span class="marquee-sep"></span></div>
+    <div class="marquee-item">Dom Quixote <span class="marquee-sep"></span></div>
+    <!-- duplicate for seamless loop -->
+    <div class="marquee-item">Dom Casmurro <span class="marquee-sep"></span></div>
+    <div class="marquee-item">Crime e Castigo <span class="marquee-sep"></span></div>
+    <div class="marquee-item">O Conde de Monte Cristo <span class="marquee-sep"></span></div>
+    <div class="marquee-item">Drácula <span class="marquee-sep"></span></div>
+    <div class="marquee-item">1984 <span class="marquee-sep"></span></div>
+    <div class="marquee-item">Sherlock Holmes <span class="marquee-sep"></span></div>
+    <div class="marquee-item">Os Miseráveis <span class="marquee-sep"></span></div>
+    <div class="marquee-item">A Arte da Guerra <span class="marquee-sep"></span></div>
+    <div class="marquee-item">Frankenstein <span class="marquee-sep"></span></div>
+    <div class="marquee-item">Arsène Lupin <span class="marquee-sep"></span></div>
+    <div class="marquee-item">Orgulho e Preconceito <span class="marquee-sep"></span></div>
+    <div class="marquee-item">Dom Quixote <span class="marquee-sep"></span></div>
+  </div>
+</div>
+
+<!-- BUSCA -->
+<section class="search-section" id="busca">
+  <div class="search-inner">
+    <h2 class="search-title">Encontre seu <em>próximo livro</em></h2>
+    <p class="search-sub">Pesquise por título ou autor em todo o acervo</p>
+    <div class="search-box">
+      <div class="search-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10 10L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <input class="search-input" id="s-input" placeholder="Dom Casmurro, Machado de Assis…" oninput="buscar(this.value)" autocomplete="off">
+      <button class="search-btn" onclick="buscar(document.getElementById('s-input').value)">Buscar</button>
+    </div>
+    <div class="search-results" id="s-results"></div>
+  </div>
+</section>
+
+<!-- ACERVO -->
+<section class="acervo-section" id="acervo">
+  <div class="acervo-inner">
+    <div class="acervo-header">
+      <div class="ah-left">
+        <div class="eyebrow">Acervo completo</div>
+        <div class="title">Obras imortais,<br><em>sempre gratuitas</em></div>
+      </div>
+      <div class="cats-scroll" id="cats-bar">
+        <button class="cat-btn on" onclick="filtrar('todos',this)">Todos</button>
+        <button class="cat-btn" onclick="filtrar('romance',this)">Romance</button>
+        <button class="cat-btn" onclick="filtrar('aventura',this)">Aventura</button>
+        <button class="cat-btn" onclick="filtrar('suspense',this)">Suspense</button>
+        <button class="cat-btn" onclick="filtrar('drama',this)">Drama</button>
+        <button class="cat-btn" onclick="filtrar('classico',this)">Clássicos</button>
+        <button class="cat-btn" onclick="filtrar('serie',this)">Séries</button>
+        <button class="cat-btn" onclick="filtrar('manga',this)">Mangá</button>
+        <button class="cat-btn" onclick="filtrar('gibi',this)">HQ</button>
+        <button class="cat-btn" onclick="filtrar('filosofia',this)">Filosofia</button>
+      </div>
+    </div>
+    <div class="books-grid" id="books-grid"></div>
+    <div style="text-align:center;margin-top:2rem;display:none" id="ver-mais-wrap">
+      <button class="btn-ghost" onclick="verMais()" style="margin:0 auto">Ver mais livros</button>
+    </div>
+  </div>
+</section>
+
+<!-- READER STRIP -->
+<section class="reader-strip" id="leitor">
+  <div class="reader-grid">
+    <div>
+      <div class="rt-eyebrow">Experiência de leitura</div>
+      <h2 class="rt-title">Como se fosse<br>um <em>livro de verdade</em></h2>
+      <p style="font-size:.88rem;color:var(--smoke);line-height:1.8">Tipografia refinada, modos pensados para imersão total. Leia à noite sem forçar os olhos, ajuste a fonte e volte de onde parou em qualquer dispositivo.</p>
+      <div class="rt-feats">
+        <div class="rt-feat"><div class="rt-feat-icon"></div><div><div class="rt-feat-name">Marca-página automático</div><div class="rt-feat-desc">Salva seu progresso exato — página e posição</div></div></div>
+        <div class="rt-feat"><div class="rt-feat-icon"></div><div><div class="rt-feat-name">Modo noturno</div><div class="rt-feat-desc">Fundo escuro que protege os olhos em qualquer horário</div></div></div>
+        <div class="rt-feat"><div class="rt-feat-icon"></div><div><div class="rt-feat-name">Calibração de fonte e brilho</div><div class="rt-feat-desc">Do tamanho à luminosidade — tudo no seu controle</div></div></div>
+        <div class="rt-feat"><div class="rt-feat-icon"></div><div><div class="rt-feat-name">Funciona offline</div><div class="rt-feat-desc">Baixe o livro e leia sem internet</div></div></div>
+      </div>
+    </div>
+    <div class="reader-mock">
+      <div class="rm-chrome">
+        <div class="rm-dot" style="background:#c45c2a"></div>
+        <div class="rm-dot" style="background:#3d3530"></div>
+        <div class="rm-dot" style="background:#3d3530"></div>
+        <div class="rm-title">Dom Casmurro · Machado de Assis</div>
+      </div>
+      <div class="rm-body">
+        <span class="rm-chapter">Capítulo I — Do título</span>
+        <p>Uma noite destas, vindo da cidade para o Engenho Novo, encontrei no trem da Central um rapaz aqui do bairro, que eu conheço de vista e de chapéu.</p>
+        <p>Cumprimentou-me, sentou-se ao pé de mim, falou da lua e dos ministros, e acabou recitando-me versos.</p>
+      </div>
+      <div class="rm-footer">
+        <div class="rm-prog"><div class="rm-fill"></div></div>
+        <span class="rm-pct">Pág. 3 · 18%</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CATEGORIES -->
+<section class="cat-full" id="categorias">
+  <div class="cat-full-inner">
+    <div style="max-width:480px">
+      <div style="font-size:.65rem;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--ember);margin-bottom:.5rem">Categorias</div>
+      <h2 style="font-family:var(--serif);font-size:clamp(2rem,4vw,3rem);font-weight:300;color:var(--paper)">Para <em style="font-style:italic;font-weight:700">todo tipo</em> de leitor</h2>
+    </div>
+    <div class="cat-grid">
+      <div class="cat-item" onclick="filtrar('classico',null)"><div class="ci-num">01</div><div class="ci-name"><em>Clássicos</em></div><div class="ci-count">15 obras imortais</div></div>
+      <div class="cat-item" onclick="filtrar('aventura',null)"><div class="ci-num">02</div><div class="ci-name"><em>Aventura</em></div><div class="ci-count">12 grandes jornadas</div></div>
+      <div class="cat-item" onclick="filtrar('suspense',null)"><div class="ci-num">03</div><div class="ci-name"><em>Suspense</em></div><div class="ci-count">10 histórias intensas</div></div>
+      <div class="cat-item" onclick="filtrar('romance',null)"><div class="ci-num">04</div><div class="ci-name"><em>Romance</em></div><div class="ci-count">8 histórias de amor</div></div>
+      <div class="cat-item" onclick="filtrar('manga',null)"><div class="ci-num">05</div><div class="ci-name"><em>Mangá</em></div><div class="ci-count">5 clássicos japoneses</div></div>
+      <div class="cat-item" onclick="filtrar('serie',null)"><div class="ci-num">06</div><div class="ci-name">Séries <em>& Sagas</em></div><div class="ci-count">Sagas completas</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="fl-logo">Biblio<b>Clube</b></div>
+        <p>A biblioteca que cabe no bolso. Leitura boa para todo tipo de leitor — gratuita, sempre.</p>
+      </div>
+      <div><div class="fc-head">Acervo</div><div class="fc-links"><a href="#">Literatura BR</a><a href="#">Clássicos</a><a href="#">Aventura</a><a href="#">Suspense</a><a href="#">Mangá & HQ</a></div></div>
+      <div><div class="fc-head">BiblioClube</div><div class="fc-links"><a href="#">Sobre</a><a href="#">Newsletter</a><a href="#">Sugerir livro</a></div></div>
+      <div><div class="fc-head">Para Escolas</div><div class="fc-links"><a href="https://escolas.biblioclube.com.br">BiblioClube Escolas</a><a href="#">Planos</a><a href="#">Contato</a></div></div>
+    </div>
+    <div class="footer-bottom"><span>© 2026 BiblioClube · Domínio público</span><span>Feito para leitores brasileiros</span></div>
+  </div>
+</footer>
+
+<script>
+// Sinopses e metadados extras
+const SINOPSES={
+  'dom-casmurro':'Bentinho, atormentado pela suspeita de traição de sua esposa Capitu, narra sua própria história com ironia e ambiguidade. Um dos maiores romances da literatura brasileira.',
+  'memorias-postumas':'Narrado por um defunto, Brás Cubas conta sua vida com ironia implacável. Uma obra revolucionária que mudou a literatura brasileira para sempre.',
+  'crime-castigo':'Raskólnikov, estudante pobre em São Petersburgo, planeja e executa um assassinato. A obra mergulha no crime, na culpa e na redenção com profundidade psicológica única.',
+  'monte-cristo':'Edmond Dantès, injustamente preso, escapa e se transforma no misterioso Conde de Monte Cristo para se vingar de seus inimigos. Uma das maiores histórias de aventura e vingança.',
+  'dracula':'O Conde Drácula, vampiro imortal da Transilvânia, lança seu terror sobre a Inglaterra. Um clássico do horror gótico que definiu o mito do vampiro.',
+  '1984':'Em Oceânia, o Grande Irmão observa tudo. Winston Smith questiona a realidade imposta pelo regime totalitário. Uma das mais perturbadoras distopias já escritas.',
+  'miseraveis':'Jean Valjean, ex-presidiário em busca de redenção, enfrenta a implacável lei encarnada pelo inspetor Javert. Um épico sobre justiça, amor e sacrifício.',
+  'tres-mosqueteiros':'D\'Artagnan chega a Paris com um sonho: tornar-se mosqueteiro do rei. Ao lado de Athos, Porthos e Aramis, vive aventuras inesquecíveis. Um por todos e todos por um!',
+  'frankenstein':'O Dr. Victor Frankenstein cria vida a partir da matéria inerte. Mas a criatura, rejeitada pelo mundo, busca amor e vingança. O primeiro romance de ficção científica da história.',
+  'alice':'Alice cai numa toca de coelho e descobre um mundo absurdo e maravilhoso. Um clássico que encanta crianças e adultos com sua lógica surreal e personagens inesquecíveis.',
+  'arte-guerra':'O tratado militar mais influente de todos os tempos. Sun Tzu ensina que a vitória suprema é vencer sem lutar. Leitura obrigatória para líderes e estrategistas.',
+  'revolucao-bichos':'Os animais de uma fazenda se revoltam contra o fazendeiro humano. Uma fábula política devastadora sobre poder, corrupção e traição de ideais.',
+  'orgulho-preconceito':'Elizabeth Bennet e Mr. Darcy se enfrentam entre orgulho e preconceito mútuo. O romance de amor mais amado da literatura inglesa.',
+  'dom-quixote':'O cavaleiro de triste figura sai pelos campos da Mancha em busca de aventuras, acompanhado do fiel Sancho Pança. A obra mais importante da literatura em língua espanhola.',
+  'guerra-paz':'Nas guerras napoleônicas, famílias russas vivem amor, glória e tragédia. O maior romance da história, com mais de 500 personagens e uma visão épica da humanidade.',
+  'sherlock-estudo':'Um estudo em vermelho marca o primeiro encontro de Sherlock Holmes e Dr. Watson. Em Londres, um crime misterioso aguarda o detetive mais famoso da ficção.',
+  'lupin-casaca':'Arsène Lupin, o ladrão mais elegante do mundo, engana a polícia com charme e inteligência. Uma série de aventuras irresistíveis do "gentleman cambrioleur".',
+  'astro-boy':'Atom, robô criado para substituir o filho morto de um cientista, luta para ser aceito num mundo que teme os robôs. O mangá que definiu um gênero.',
+  'nausicaa':'Em um futuro pós-apocalíptico, a princesa Nausicaä busca a paz entre humanos e a floresta tóxica. A obra-prima de Miyazaki antes de fundar o Studio Ghibli.',
+  'frankenstein':'Victor Frankenstein desafia os limites da ciência ao criar vida. Mas sua criatura, rejeitada pelo criador e pela sociedade, busca seu lugar no mundo com consequências trágicas.',
+};
+const EDITORAS={
+  'dom-casmurro':'B. L. Garnier','memorias-postumas':'Tipografia Nacional',
+  'crime-castigo':'Katkov','monte-cristo':'Le Journal des Débats',
+  'dracula':'Archibald Constable','1984':'Secker & Warburg',
+  'miseraveis':'A. Lacroix, Verboeckhoven','tres-mosqueteiros':'Baudry',
+  'frankenstein':'Lackington, Hughes','alice':'Macmillan',
+  'arte-guerra':'Domínio público','revolucao-bichos':'Secker & Warburg',
+  'orgulho-preconceito':'T. Egerton','dom-quixote':'Juan de la Cuesta',
+  'sherlock-estudo':'Ward Lock & Co','lupin-casaca':'Pierre Lafitte',
+  'astro-boy':'Kodansha','nausicaa':'Tokuma Shoten',
+};
+const ANOS={
+  'dom-casmurro':1899,'memorias-postumas':1881,'quincas-borba':1891,
+  'o-cortico':1890,'iracema':1865,'o-guarani':1857,'narizinho':1931,
+  'dom-quixote':1605,'crime-castigo':1866,'guerra-paz':1869,
+  'anna-karenina':1877,'monte-cristo':1844,'tres-mosqueteiros':1844,
+  'dracula':1897,'frankenstein':1818,'alice':1865,'fantasma-opera':1910,
+  'ilha-tesouro':1883,'arte-guerra':-500,'revolucao-bichos':1945,
+  '1984':1949,'admiravel-mundo':1932,'guerra-mundos':1898,
+  'maquina-tempo':1895,'vinte-mil-leguas':1869,'volta-mundo':1872,
+  'miseraveis':1862,'notre-dame':1831,'orgulho-preconceito':1813,
+  'razao-sensibilidade':1811,'grandes-esperancas':1861,'moby-dick':1851,
+  'sherlock-estudo':1887,'sherlock-quatro':1890,'sherlock-cao':1902,
+  'lupin-casaca':1907,'lupin-herlock':1908,'lupin-agulha':1909,
+  'astro-boy':1952,'nausicaa':1982,'lone-wolf':1970,'mw':1976,'phoenix':1967,
+  'flash-gordon':1934,'spirit':1940,'tarzan':1929,'prince-valiant':1937,
+  'assim-falou':1883,'principe':1532,
+};
+
+const ACERVO=[
+  {id:'dom-casmurro',titulo:'Dom Casmurro',autor:'Machado de Assis',cat:'classico',cor:'#3d2010'},
+  {id:'memorias-postumas',titulo:'Memórias Póstumas de Brás Cubas',autor:'Machado de Assis',cat:'classico',cor:'#2d1a08'},
+  {id:'quincas-borba',titulo:'Quincas Borba',autor:'Machado de Assis',cat:'drama',cor:'#1a2d08'},
+  {id:'o-cortico',titulo:'O Cortiço',autor:'Aluísio Azevedo',cat:'drama',cor:'#2d1a1a'},
+  {id:'iracema',titulo:'Iracema',autor:'José de Alencar',cat:'romance',cor:'#0e2a1a'},
+  {id:'o-guarani',titulo:'O Guarani',autor:'José de Alencar',cat:'aventura',cor:'#0a1a2d'},
+  {id:'narizinho',titulo:'Reinações de Narizinho',autor:'Monteiro Lobato',cat:'aventura',cor:'#2a1040'},
+  {id:'dom-quixote',titulo:'Dom Quixote',autor:'Miguel de Cervantes',cat:'classico',cor:'#3d1a00'},
+  {id:'crime-castigo',titulo:'Crime e Castigo',autor:'Fiódor Dostoiévski',cat:'suspense',cor:'#0a0a2d'},
+  {id:'guerra-paz',titulo:'Guerra e Paz',autor:'Liev Tolstói',cat:'drama',cor:'#2d0a0a'},
+  {id:'anna-karenina',titulo:'Anna Karênina',autor:'Liev Tolstói',cat:'romance',cor:'#2d0a1a'},
+  {id:'monte-cristo',titulo:'O Conde de Monte Cristo',autor:'Alexandre Dumas',cat:'aventura',cor:'#1a0a2d'},
+  {id:'tres-mosqueteiros',titulo:'Os Três Mosqueteiros',autor:'Alexandre Dumas',cat:'aventura',cor:'#0e2a0e'},
+  {id:'dracula',titulo:'Drácula',autor:'Bram Stoker',cat:'suspense',cor:'#1a0008'},
+  {id:'frankenstein',titulo:'Frankenstein',autor:'Mary Shelley',cat:'suspense',cor:'#0a0a1a'},
+  {id:'alice',titulo:'Alice no País das Maravilhas',autor:'Lewis Carroll',cat:'aventura',cor:'#1a0a2d'},
+  {id:'fantasma-opera',titulo:'O Fantasma da Ópera',autor:'Gaston Leroux',cat:'romance',cor:'#1a0a00'},
+  {id:'ilha-tesouro',titulo:'A Ilha do Tesouro',autor:'Robert Louis Stevenson',cat:'aventura',cor:'#0a2d1a'},
+  {id:'arte-guerra',titulo:'A Arte da Guerra',autor:'Sun Tzu',cat:'filosofia',cor:'#2d1a00'},
+  {id:'revolucao-bichos',titulo:'A Revolução dos Bichos',autor:'George Orwell',cat:'classico',cor:'#1a2d00'},
+  {id:'1984',titulo:'1984',autor:'George Orwell',cat:'suspense',cor:'#0a0a10'},
+  {id:'admiravel-mundo',titulo:'Admirável Mundo Novo',autor:'Aldous Huxley',cat:'suspense',cor:'#1a0a2d'},
+  {id:'guerra-mundos',titulo:'A Guerra dos Mundos',autor:'H.G. Wells',cat:'aventura',cor:'#1a0808'},
+  {id:'maquina-tempo',titulo:'A Máquina do Tempo',autor:'H.G. Wells',cat:'aventura',cor:'#0a1a2d'},
+  {id:'vinte-mil-leguas',titulo:'Vinte Mil Léguas Submarinas',autor:'Júlio Verne',cat:'aventura',cor:'#001a2d'},
+  {id:'volta-mundo',titulo:'A Volta ao Mundo em 80 Dias',autor:'Júlio Verne',cat:'aventura',cor:'#001a1a'},
+  {id:'miseraveis',titulo:'Os Miseráveis',autor:'Victor Hugo',cat:'drama',cor:'#1a0a0a'},
+  {id:'notre-dame',titulo:'Notre-Dame de Paris',autor:'Victor Hugo',cat:'drama',cor:'#0a0a1a'},
+  {id:'orgulho-preconceito',titulo:'Orgulho e Preconceito',autor:'Jane Austen',cat:'romance',cor:'#2d1a1a'},
+  {id:'razao-sensibilidade',titulo:'Razão e Sensibilidade',autor:'Jane Austen',cat:'romance',cor:'#1a2d1a'},
+  {id:'grandes-esperancas',titulo:'Grandes Esperanças',autor:'Charles Dickens',cat:'drama',cor:'#2d2010'},
+  {id:'moby-dick',titulo:'Moby Dick',autor:'Herman Melville',cat:'aventura',cor:'#001020'},
+  {id:'letra-escarlate',titulo:'A Letra Escarlate',autor:'Nathaniel Hawthorne',cat:'drama',cor:'#2d0808'},
+  {id:'assim-falou',titulo:'Assim Falou Zaratustra',autor:'Friedrich Nietzsche',cat:'filosofia',cor:'#1a1a00'},
+  {id:'principe',titulo:'O Príncipe',autor:'Nicolau Maquiavel',cat:'filosofia',cor:'#2d1a00'},
+  {id:'sherlock-estudo',titulo:'Um Estudo em Vermelho',autor:'Arthur Conan Doyle',cat:'serie',cor:'#1a0e00',badge:'série'},
+  {id:'sherlock-quatro',titulo:'O Signo dos Quatro',autor:'Arthur Conan Doyle',cat:'serie',cor:'#1a0e00',badge:'série'},
+  {id:'sherlock-cao',titulo:'O Cão dos Baskervilles',autor:'Arthur Conan Doyle',cat:'serie',cor:'#1a0e00',badge:'série'},
+  {id:'lupin-casaca',titulo:'Arsène Lupin: Ladrão de Casaca',autor:'Maurice Leblanc',cat:'serie',cor:'#0e001a',badge:'série'},
+  {id:'lupin-herlock',titulo:'Arsène Lupin vs Herlock Sholmes',autor:'Maurice Leblanc',cat:'serie',cor:'#0e001a',badge:'série'},
+  {id:'lupin-agulha',titulo:'A Agulha Oca',autor:'Maurice Leblanc',cat:'serie',cor:'#0e001a',badge:'série'},
+  {id:'astro-boy',titulo:'Astro Boy',autor:'Osamu Tezuka',cat:'manga',cor:'#0a0a20',badge:'mangá'},
+  {id:'nausicaa',titulo:'Nausicaä do Vale do Vento',autor:'Hayao Miyazaki',cat:'manga',cor:'#0a1a0a',badge:'mangá'},
+  {id:'lone-wolf',titulo:'Lone Wolf and Cub',autor:'Kazuo Koike',cat:'manga',cor:'#1a0a00',badge:'mangá'},
+  {id:'mw',titulo:'MW',autor:'Osamu Tezuka',cat:'manga',cor:'#0a0a1a',badge:'mangá'},
+  {id:'phoenix',titulo:'Phoenix (Hi no Tori)',autor:'Osamu Tezuka',cat:'manga',cor:'#2d1000',badge:'mangá'},
+  {id:'flash-gordon',titulo:'Flash Gordon: Tiras Clássicas',autor:'Alex Raymond',cat:'gibi',cor:'#1a0e00',badge:'hq'},
+  {id:'spirit',titulo:'The Spirit',autor:'Will Eisner',cat:'gibi',cor:'#0a0a1a',badge:'hq'},
+  {id:'tarzan',titulo:'Tarzan: Tiras Originais',autor:'Hal Foster',cat:'gibi',cor:'#0a1a00',badge:'hq'},
+  {id:'prince-valiant',titulo:'Prince Valiant',autor:'Hal Foster',cat:'gibi',cor:'#0e0a1a',badge:'hq'},
+];
+
+let catAtiva='todos', visiveis=24;
+
+function badgeClass(b){return b==='série'?'s':b==='mangá'?'m':'g'}
+function catLabel(c){const m={classico:'Clássico',aventura:'Aventura',suspense:'Suspense',drama:'Drama',romance:'Romance',serie:'Série',manga:'Mangá',gibi:'HQ',filosofia:'Filosofia'};return m[c]||c}
+
+let _hoverTimer=null;
+window._cardAtivo=null;
+
+function abrirCard(id, cardEl){
+  const l=ACERVO.find(x=>x.id===id);
+  if(!l) return;
+  window._cardAtivo=id;
+
+  // Preencher dados
+  document.getElementById('be-title').textContent=l.titulo;
+  document.getElementById('be-author').textContent=l.autor;
+  document.getElementById('be-cover').style.background=`linear-gradient(175deg,${l.cor} 0%,${l.cor}cc 60%,rgba(0,0,0,.4) 100%)`;
+
+  // Badge
+  const badge=document.getElementById('be-badge');
+  if(l.badge){ badge.textContent=l.badge; badge.style.display='block'; }
+  else badge.style.display='none';
+
+  // Meta tags
+  const ano=ANOS[id];
+  const editora=EDITORAS[id];
+  const meta=document.getElementById('be-meta');
+  meta.innerHTML=`
+    <span class="be-tag cat">${catLabel(l.cat)}</span>
+    ${ano?`<span class="be-tag">${ano>0?ano:'c. '+Math.abs(ano)+'a.C.'}</span>`:''}
+    ${editora?`<span class="be-tag">${editora}</span>`:''}
+  `;
+
+  // Sinopse
+  const sinopse=SINOPSES[id]||'Uma obra clássica da literatura mundial. Clique em "Ler agora" para começar.';
+  document.getElementById('be-sinopse').textContent=sinopse;
+
+  // Posicionar o card próximo ao elemento
+  const rect=cardEl.getBoundingClientRect();
+  const card=document.getElementById('book-expanded');
+  const cardW=320;
+  const cardH=420;
+  let left=rect.left+rect.width/2-cardW/2;
+  let top=rect.top+window.scrollY-cardH/2+rect.height/2;
+
+  // Garantir que não saia da tela
+  left=Math.max(12,Math.min(left, window.innerWidth-cardW-12));
+  top=Math.max(window.scrollY+12, Math.min(top, window.scrollY+window.innerHeight-cardH-12));
+
+  card.style.left=left+'px';
+  card.style.top=top+'px';
+
+  // Mostrar overlay e card
+  document.getElementById('book-overlay').classList.add('active');
+  card.classList.add('show');
+}
+
+function fecharCard(){
+  document.getElementById('book-overlay').classList.remove('active');
+  document.getElementById('book-expanded').classList.remove('show');
+  window._cardAtivo=null;
+  clearTimeout(_hoverTimer);
+}
+
+function renderBooks(lista){
+  const grid=document.getElementById('books-grid');
+  const mostrar=lista.slice(0,visiveis);
+  grid.innerHTML=mostrar.map(l=>`
+    <div class="book-card"
+      onmouseenter="clearTimeout(_hoverTimer);_hoverTimer=setTimeout(()=>abrirCard('${l.id}',this),700)"
+      onmouseleave="if(!document.getElementById('book-expanded').classList.contains('show'))clearTimeout(_hoverTimer)"
+      onclick="abrirLivro('${l.id}')">
+      <div class="book-cover">
+        <div class="book-cover-art" style="background:linear-gradient(175deg,${l.cor} 0%,${l.cor}99 60%,rgba(0,0,0,.3) 100%)">
+          <div class="cover-stripe" style="background:var(--ember);opacity:.6"></div>
+          <div class="cover-title">${l.titulo}</div>
+          <div class="cover-author">${l.autor}</div>
+        </div>
+        ${l.badge?`<span class="book-badge-abs ${badgeClass(l.badge)}">${l.badge}</span>`:''}
+      </div>
+      <div class="book-meta">
+        <div>
+          <div class="bm-title">${l.titulo}</div>
+          <div class="bm-author">${l.autor}</div>
+        </div>
+        <span class="bm-cat">${catLabel(l.cat)}</span>
+      </div>
+    </div>
+  `).join('');
+  const lista2=catAtiva==='todos'?ACERVO:ACERVO.filter(l=>l.cat===catAtiva);
+  document.getElementById('ver-mais-wrap').style.display=lista2.length>visiveis?'block':'none';
+}
+
+function filtrar(cat,btn){
+  catAtiva=cat; visiveis=24;
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  const lista=cat==='todos'?ACERVO:ACERVO.filter(l=>l.cat===cat);
+  renderBooks(lista);
+  document.getElementById('acervo').scrollIntoView({behavior:'smooth'});
+}
+
+function verMais(){
+  visiveis+=24;
+  const lista=catAtiva==='todos'?ACERVO:ACERVO.filter(l=>l.cat===catAtiva);
+  renderBooks(lista);
+}
+
+function buscar(q){
+  const el=document.getElementById('s-results');
+  const v=q.trim().toLowerCase();
+  if(!v||v.length<2){el.style.display='none';return;}
+  const r=ACERVO.filter(l=>l.titulo.toLowerCase().includes(v)||l.autor.toLowerCase().includes(v)).slice(0,6);
+  el.style.display='block';
+  if(!r.length){
+    el.innerHTML='<div class="search-empty">Nenhum livro encontrado para "'+q+'"</div>';
+    return;
+  }
+  el.innerHTML=r.map(l=>`
+    <div class="search-result-item" onclick="abrirLivro('${l.id}')">
+      <div class="sri-cover" style="background:${l.cor}">
+        <svg width="14" height="18" viewBox="0 0 14 18" fill="none"><rect x="1" y="1" width="12" height="16" rx="1" stroke="rgba(255,255,255,0.4)" stroke-width="1"/><path d="M4 5h6M4 8h6M4 11h4" stroke="rgba(255,255,255,0.3)" stroke-width="1" stroke-linecap="round"/></svg>
+      </div>
+      <div>
+        <div class="sri-title">${l.titulo}</div>
+        <div class="sri-author">${l.autor}</div>
+        <div class="sri-cat">${catLabel(l.cat)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function abrirLivro(id){
+  const l=ACERVO.find(x=>x.id===id);
+  alert('Em breve: leitor completo!\n\n'+l?.titulo+'\n'+l?.autor);
+}
+
+// Fechar busca ao clicar fora
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#busca')) document.getElementById('s-results').style.display='none';
+});
+
+// Fechar card com Escape
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') fecharCard();
+});
+
+renderBooks(ACERVO);
+</script>
+</body>
+</html>
