@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BiblioClube Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --void:#080706;--deep:#0e0c0a;--layer:#141210;--surface:#1c1916;
+  --edge:#2a2520;--dim:#5a5050;--smoke:rgba(255,248,230,.55);
+  --ash:rgba(255,248,230,.78);--paper:#fff8e6;
+  --ember:#c45c2a;--flame:#e07040;
+  --green:#2d6a40;--red:#6a2020;
+  --serif:'Cormorant Garamond',serif;--sans:'Syne',sans-serif;
+}
+body{font-family:var(--sans);background:var(--void);color:var(--paper);min-height:100vh}
+
+/* LOGIN */
+#tela-login{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;padding:2rem;
+}
+.login-box{
+  background:var(--deep);border:1px solid var(--edge);
+  border-radius:8px;padding:2.5rem;width:100%;max-width:380px;
+}
+.login-logo{font-family:var(--serif);font-size:1.8rem;font-weight:400;margin-bottom:.25rem}
+.login-logo b{color:var(--ember)}
+.login-sub{font-size:.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:2rem}
+.campo label{font-size:.68rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.4rem}
+.campo input{width:100%;background:var(--layer);border:1px solid var(--edge);border-radius:4px;padding:.7rem .9rem;color:var(--paper);font-family:var(--sans);font-size:.9rem;outline:none;transition:border-color .2s;margin-bottom:1rem}
+.campo input:focus{border-color:var(--ember)}
+.btn-login{width:100%;background:var(--ember);color:var(--paper);border:none;border-radius:4px;padding:.8rem;font-family:var(--sans);font-size:.78rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.btn-login:hover{background:var(--flame)}
+.login-err{font-size:.8rem;color:#e07070;margin-top:.75rem;text-align:center;display:none}
+
+/* ADMIN */
+#tela-admin{display:none}
+.admin-header{
+  background:var(--deep);border-bottom:1px solid var(--edge);
+  padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+.admin-logo{font-family:var(--serif);font-size:1.3rem}
+.admin-logo b{color:var(--ember)}
+.admin-logo span{font-size:.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-left:.5rem}
+.btn-sm{font-size:.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:.4rem .9rem;border-radius:3px;cursor:pointer;border:1px solid var(--edge);background:transparent;color:var(--smoke);transition:all .2s;font-family:var(--sans)}
+.btn-sm:hover{border-color:var(--ash);color:var(--paper)}
+.btn-sm.danger{border-color:rgba(160,40,40,.4);color:#e07070}
+.btn-sm.danger:hover{background:rgba(160,40,40,.15)}
+.btn-primary{background:var(--ember);border-color:var(--ember);color:var(--paper)}
+.btn-primary:hover{background:var(--flame);border-color:var(--flame)}
+
+.admin-body{max-width:1100px;margin:0 auto;padding:2rem}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2.5rem}
+.stat-card{background:var(--deep);border:1px solid var(--edge);border-radius:6px;padding:1.25rem;text-align:center}
+.stat-n{font-family:var(--serif);font-size:2rem;font-weight:700;color:var(--paper)}
+.stat-l{font-size:.62rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-top:.2rem}
+
+/* TABLE */
+.section-title{font-size:.68rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between}
+.livros-table{width:100%;border-collapse:collapse}
+.livros-table th{font-size:.62rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);text-align:left;padding:.6rem .9rem;border-bottom:1px solid var(--edge)}
+.livros-table td{padding:.75rem .9rem;border-bottom:1px solid rgba(255,248,230,.04);font-size:.84rem;color:var(--ash);vertical-align:middle}
+.livros-table tr:hover td{background:var(--layer)}
+.pub-badge{display:inline-block;font-size:.58rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border-radius:2px}
+.pub-badge.sim{background:rgba(45,106,64,.3);color:#6dbb8a;border:1px solid rgba(45,106,64,.4)}
+.pub-badge.nao{background:rgba(106,32,32,.3);color:#e07070;border:1px solid rgba(106,32,32,.4)}
+.livro-titulo-cel{font-family:var(--serif);font-style:italic;color:var(--paper);font-size:.92rem}
+.acoes{display:flex;gap:.4rem;flex-wrap:wrap}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(8,7,6,.85);z-index:500;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(6px)}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--deep);border:1px solid var(--edge);border-radius:8px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto}
+.modal-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--edge);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:var(--serif);font-size:1.1rem;font-style:italic}
+.modal-close{background:none;border:none;color:var(--dim);font-size:1.2rem;cursor:pointer;transition:color .2s}
+.modal-close:hover{color:var(--paper)}
+.modal-body{padding:1.5rem}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-grid .full{grid-column:1/-1}
+.fg label{font-size:.62rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.35rem}
+.fg input,.fg select,.fg textarea{width:100%;background:var(--layer);border:1px solid var(--edge);border-radius:4px;padding:.65rem .85rem;color:var(--paper);font-family:var(--sans);font-size:.86rem;outline:none;transition:border-color .2s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--ember)}
+.fg textarea{resize:vertical;min-height:80px;font-family:var(--serif);font-size:.9rem;font-style:italic}
+.fg select option{background:var(--deep)}
+.modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--edge);display:flex;gap:.6rem;justify-content:flex-end}
+
+/* UPLOAD */
+.upload-area{
+  border:1.5px dashed var(--edge);border-radius:6px;padding:2rem;text-align:center;cursor:pointer;
+  transition:border-color .2s;margin-top:.5rem;
+}
+.upload-area:hover{border-color:var(--ember)}
+.upload-area p{font-size:.82rem;color:var(--dim);margin-top:.5rem}
+.upload-area input{display:none}
+.upload-progress{display:none;margin-top:1rem}
+.prog-bar{height:4px;background:var(--edge);border-radius:2px;overflow:hidden;margin-top:.4rem}
+.prog-fill{height:100%;background:var(--ember);border-radius:2px;transition:width .3s}
+.upload-status{font-size:.78rem;color:var(--smoke);margin-top:.4rem}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;
+  background:var(--surface);border:1px solid var(--edge);border-radius:6px;
+  padding:.75rem 1.25rem;font-size:.82rem;color:var(--ash);
+  transform:translateY(20px);opacity:0;transition:all .3s;pointer-events:none;
+}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{border-color:rgba(45,106,64,.5);color:#6dbb8a}
+.toast.err{border-color:rgba(160,40,40,.5);color:#e07070}
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- LOGIN -->
+<div id="tela-login">
+  <div class="login-box">
+    <div class="login-logo">Biblio<b>Clube</b></div>
+    <div class="login-sub">Painel Administrativo</div>
+    <div class="campo">
+      <label>Senha de acesso</label>
+      <input type="password" id="senha-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()">
+    </div>
+    <button class="btn-login" onclick="login()">Entrar</button>
+    <div class="login-err" id="login-err">Senha incorreta</div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="tela-admin">
+  <div class="admin-header">
+    <div>
+      <div class="admin-logo">Biblio<b>Clube</b> <span>Admin</span></div>
+    </div>
+    <div style="display:flex;gap:.5rem">
+      <a href="/" target="_blank" class="btn-sm">Ver site ↗</a>
+      <button class="btn-sm danger" onclick="logout()">Sair</button>
+    </div>
+  </div>
+
+  <div class="admin-body">
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-n" id="st-total">0</div><div class="stat-l">Total de livros</div></div>
+      <div class="stat-card"><div class="stat-n" id="st-pub">0</div><div class="stat-l">Publicados</div></div>
+      <div class="stat-card"><div class="stat-n" id="st-pdf">0</div><div class="stat-l">Com PDF</div></div>
+      <div class="stat-card"><div class="stat-n" id="st-dest">0</div><div class="stat-l">Em destaque</div></div>
+    </div>
+
+    <!-- Lista -->
+    <div class="section-title">
+      <span>Acervo de livros</span>
+      <button class="btn-sm btn-primary" onclick="abrirModal()">+ Adicionar livro</button>
+    </div>
+    <table class="livros-table">
+      <thead>
+        <tr>
+          <th>Título</th>
+          <th>Autor</th>
+          <th>Categoria</th>
+          <th>PDF</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="livros-tbody"></tbody>
+    </table>
+    <div id="lista-vazia" style="text-align:center;padding:3rem;color:var(--dim);font-family:var(--serif);font-style:italic;display:none">
+      Nenhum livro cadastrado ainda. Clique em "+ Adicionar livro" para começar.
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LIVRO -->
+<div class="modal-overlay" id="modal-livro">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-titulo">Novo Livro</div>
+      <button class="modal-close" onclick="fecharModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ed-id">
+      <div class="form-grid">
+        <div class="fg full"><label>Título *</label><input id="ed-titulo" placeholder="Ex: O Gato Preto"></div>
+        <div class="fg"><label>Autor *</label><input id="ed-autor" placeholder="Ex: Edgar Allan Poe"></div>
+        <div class="fg"><label>Ano</label><input id="ed-ano" placeholder="Ex: 1843"></div>
+        <div class="fg"><label>Editora</label><input id="ed-editora" placeholder="Ex: The Pioneer"></div>
+        <div class="fg"><label>Categoria</label>
+          <select id="ed-cat">
+            <option value="classico">Clássico</option>
+            <option value="romance">Romance</option>
+            <option value="aventura">Aventura</option>
+            <option value="suspense">Suspense</option>
+            <option value="drama">Drama</option>
+            <option value="filosofia">Filosofia</option>
+            <option value="serie">Série</option>
+            <option value="manga">Mangá</option>
+            <option value="gibi">HQ / Gibi</option>
+          </select>
+        </div>
+        <div class="fg"><label>Badge (opcional)</label><input id="ed-badge" placeholder="Ex: série, mangá, hq"></div>
+        <div class="fg"><label>Série (opcional)</label><input id="ed-serie" placeholder="Ex: Contos de Poe"></div>
+        <div class="fg"><label>Nº na série</label><input id="ed-numSerie" type="number" min="0" placeholder="0"></div>
+        <div class="fg"><label>URL slug</label><input id="ed-slug" placeholder="ex: gato-preto"></div>
+        <div class="fg"><label>URL da capa (ou faça upload)</label><input id="ed-capa" placeholder="https://..."></div>
+        <div class="fg full"><label>Sinopse</label><textarea id="ed-sinopse" placeholder="Breve descrição do livro…"></textarea></div>
+        <div class="fg" style="display:flex;align-items:center;gap:.5rem">
+          <input type="checkbox" id="ed-pub" checked style="width:auto">
+          <label for="ed-pub" style="font-size:.82rem;text-transform:none;letter-spacing:0;cursor:pointer;color:var(--ash)">Publicado</label>
+        </div>
+        <div class="fg" style="display:flex;align-items:center;gap:.5rem">
+          <input type="checkbox" id="ed-dest" style="width:auto">
+          <label for="ed-dest" style="font-size:.82rem;text-transform:none;letter-spacing:0;cursor:pointer;color:var(--ash)">Em destaque</label>
+        </div>
+      </div>
+
+      <!-- Upload capa -->
+      <div style="margin-top:1.25rem">
+        <div style="font-size:.62rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:.4rem">Upload de Capa</div>
+        <label class="upload-area" id="capa-area">
+          <input type="file" id="capa-input" accept="image/*" onchange="uploadCapa(this)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--dim)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          <p>Clique para selecionar imagem de capa</p>
+        </label>
+        <div id="capa-status" style="font-size:.76rem;color:var(--smoke);margin-top:.4rem"></div>
+      </div>
+
+      <!-- Upload PDF -->
+      <div id="upload-pdf-section" style="margin-top:1.25rem;display:none">
+        <div style="font-size:.62rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:.4rem">Upload do PDF</div>
+        <label class="upload-area" id="pdf-area">
+          <input type="file" id="pdf-input" accept=".pdf" onchange="uploadPdf(this)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--dim)"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg>
+          <p id="pdf-label">Clique para selecionar o PDF do livro</p>
+        </label>
+        <div class="upload-progress" id="pdf-prog">
+          <div class="prog-bar"><div class="prog-fill" id="pdf-fill" style="width:0%"></div></div>
+          <div class="upload-status" id="pdf-status">Enviando…</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-sm btn-primary" onclick="salvarLivro()">Salvar livro</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────
+const API = window.location.origin; // mesma origem da API
+let TOKEN = localStorage.getItem('bc_admin_token') || '';
+let LIVROS = [];
+
+// ── AUTH ──────────────────────────────────────────────────
+async function login(){
+  const senha = document.getElementById('senha-input').value;
+  const r = await fetch(API+'/api/admin/login',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({senha})
+  });
+  const d = await r.json();
+  if(d.ok){
+    TOKEN = d.token;
+    localStorage.setItem('bc_admin_token', TOKEN);
+    document.getElementById('tela-login').style.display='none';
+    document.getElementById('tela-admin').style.display='block';
+    carregarLivros();
+  } else {
+    document.getElementById('login-err').style.display='block';
+  }
+}
+
+function logout(){
+  localStorage.removeItem('bc_admin_token');
+  TOKEN='';
+  document.getElementById('tela-login').style.display='flex';
+  document.getElementById('tela-admin').style.display='none';
+}
+
+// ── CARREGAR ──────────────────────────────────────────────
+async function carregarLivros(){
+  const r = await fetch(API+'/api/admin/livros',{
+    headers:{'X-Admin-Token': TOKEN}
+  });
+  const d = await r.json();
+  if(!d.ok){ logout(); return; }
+  LIVROS = d.livros;
+  renderLivros();
+}
+
+function renderLivros(){
+  const tbody = document.getElementById('livros-tbody');
+  const vazio = document.getElementById('lista-vazia');
+
+  // Stats
+  document.getElementById('st-total').textContent = LIVROS.length;
+  document.getElementById('st-pub').textContent   = LIVROS.filter(l=>l.publicado).length;
+  document.getElementById('st-pdf').textContent   = LIVROS.filter(l=>l.pdf_key).length;
+  document.getElementById('st-dest').textContent  = LIVROS.filter(l=>l.destaque).length;
+
+  if(!LIVROS.length){
+    tbody.innerHTML=''; vazio.style.display='block'; return;
+  }
+  vazio.style.display='none';
+  tbody.innerHTML = LIVROS.map(l=>`
+    <tr>
+      <td><div class="livro-titulo-cel">${esc(l.titulo)}</div></td>
+      <td>${esc(l.autor)}</td>
+      <td>${esc(l.categoria)}</td>
+      <td>${l.pdf_key?'<span class="pub-badge sim">✓ PDF</span>':'<span class="pub-badge nao">Sem PDF</span>'}</td>
+      <td>${l.publicado?'<span class="pub-badge sim">Publicado</span>':'<span class="pub-badge nao">Rascunho</span>'}</td>
+      <td>
+        <div class="acoes">
+          <button class="btn-sm" onclick="editarLivro('${l.id}')">Editar</button>
+          <button class="btn-sm btn-primary" onclick="abrirUploadPdf('${l.id}')">PDF</button>
+          <button class="btn-sm danger" onclick="excluirLivro('${l.id}')">Excluir</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ── MODAL ─────────────────────────────────────────────────
+function abrirModal(id){
+  document.getElementById('ed-id').value='';
+  document.getElementById('modal-titulo').textContent='Novo Livro';
+  ['titulo','autor','ano','editora','slug','capa','sinopse','serie','badge'].forEach(f=>{
+    document.getElementById('ed-'+f).value='';
+  });
+  document.getElementById('ed-cat').value='classico';
+  document.getElementById('ed-numSerie').value='0';
+  document.getElementById('ed-pub').checked=true;
+  document.getElementById('ed-dest').checked=false;
+  document.getElementById('upload-pdf-section').style.display='none';
+  document.getElementById('capa-status').textContent='';
+  document.getElementById('modal-livro').classList.add('open');
+}
+
+function editarLivro(id){
+  const l = LIVROS.find(x=>x.id===id);
+  if(!l) return;
+  document.getElementById('ed-id').value=l.id;
+  document.getElementById('modal-titulo').textContent='Editar Livro';
+  document.getElementById('ed-titulo').value=l.titulo||'';
+  document.getElementById('ed-autor').value=l.autor||'';
+  document.getElementById('ed-ano').value=l.ano||'';
+  document.getElementById('ed-editora').value=l.editora||'';
+  document.getElementById('ed-slug').value=l.slug||'';
+  document.getElementById('ed-capa').value=l.capa_url||'';
+  document.getElementById('ed-sinopse').value=l.sinopse||'';
+  document.getElementById('ed-serie').value=l.serie||'';
+  document.getElementById('ed-badge').value=l.badge||'';
+  document.getElementById('ed-numSerie').value=l.num_serie||0;
+  document.getElementById('ed-cat').value=l.categoria||'classico';
+  document.getElementById('ed-pub').checked=!!l.publicado;
+  document.getElementById('ed-dest').checked=!!l.destaque;
+  document.getElementById('upload-pdf-section').style.display='block';
+  document.getElementById('pdf-label').textContent=l.pdf_key?'PDF atual: '+l.pdf_key.split('/').pop()+' · Clique para substituir':'Clique para selecionar o PDF do livro';
+  document.getElementById('modal-livro').classList.add('open');
+}
+
+function fecharModal(){
+  document.getElementById('modal-livro').classList.remove('open');
+}
+
+async function salvarLivro(){
+  const id    = document.getElementById('ed-id').value;
+  const dados = {
+    titulo:    document.getElementById('ed-titulo').value.trim(),
+    autor:     document.getElementById('ed-autor').value.trim(),
+    ano:       document.getElementById('ed-ano').value.trim(),
+    editora:   document.getElementById('ed-editora').value.trim(),
+    categoria: document.getElementById('ed-cat').value,
+    sinopse:   document.getElementById('ed-sinopse').value.trim(),
+    capa_url:  document.getElementById('ed-capa').value.trim(),
+    serie:     document.getElementById('ed-serie').value.trim(),
+    badge:     document.getElementById('ed-badge').value.trim(),
+    num_serie: parseInt(document.getElementById('ed-numSerie').value)||0,
+    slug:      document.getElementById('ed-slug').value.trim(),
+    publicado: document.getElementById('ed-pub').checked,
+    destaque:  document.getElementById('ed-dest').checked,
+  };
+  if(!dados.titulo || !dados.autor){ toast('Título e autor são obrigatórios','err'); return; }
+
+  const url    = id ? API+'/api/admin/livros/'+id : API+'/api/admin/livros';
+  const method = id ? 'PUT' : 'POST';
+  const r = await fetch(url,{
+    method, headers:{'Content-Type':'application/json','X-Admin-Token':TOKEN},
+    body: JSON.stringify(dados)
+  });
+  const d = await r.json();
+  if(d.ok){
+    toast(id?'Livro atualizado!':'Livro criado!','ok');
+    fecharModal();
+    carregarLivros();
+  } else {
+    toast(d.erro||'Erro ao salvar','err');
+  }
+}
+
+async function excluirLivro(id){
+  const l = LIVROS.find(x=>x.id===id);
+  if(!confirm('Excluir "'+l?.titulo+'"? Esta ação não pode ser desfeita.')) return;
+  const r = await fetch(API+'/api/admin/livros/'+id,{
+    method:'DELETE', headers:{'X-Admin-Token':TOKEN}
+  });
+  const d = await r.json();
+  if(d.ok){ toast('Livro excluído','ok'); carregarLivros(); }
+  else toast(d.erro||'Erro ao excluir','err');
+}
+
+// ── UPLOAD PDF ────────────────────────────────────────────
+function abrirUploadPdf(id){
+  editarLivro(id);
+}
+
+async function uploadPdf(input){
+  const id = document.getElementById('ed-id').value;
+  if(!id){ toast('Salve o livro antes de fazer upload do PDF','err'); return; }
+  if(!input.files[0]) return;
+  const form = new FormData();
+  form.append('pdf', input.files[0]);
+  const prog = document.getElementById('pdf-prog');
+  const fill = document.getElementById('pdf-fill');
+  const status = document.getElementById('pdf-status');
+  prog.style.display='block';
+  fill.style.width='30%'; status.textContent='Enviando PDF…';
+
+  try{
+    const r = await fetch(API+'/api/admin/livros/'+id+'/upload_pdf',{
+      method:'POST', headers:{'X-Admin-Token':TOKEN}, body:form
+    });
+    fill.style.width='70%'; status.textContent='Extraindo texto…';
+    const d = await r.json();
+    fill.style.width='100%';
+    if(d.ok){
+      status.textContent=`✓ PDF enviado! ${d.paginas} páginas extraídas.`;
+      toast('PDF processado com sucesso!','ok');
+      carregarLivros();
+    } else {
+      status.textContent='Erro: '+(d.erro||'Falha no upload');
+      toast(d.erro||'Erro no upload','err');
+    }
+  }catch(e){
+    status.textContent='Erro de conexão';
+    toast('Erro de conexão','err');
+  }
+}
+
+async function uploadCapa(input){
+  const id = document.getElementById('ed-id').value;
+  if(!id){ toast('Salve o livro antes de fazer upload da capa','err'); return; }
+  if(!input.files[0]) return;
+  const form = new FormData();
+  form.append('capa', input.files[0]);
+  document.getElementById('capa-status').textContent='Enviando capa…';
+  try{
+    const r = await fetch(API+'/api/admin/livros/'+id+'/upload_capa',{
+      method:'POST', headers:{'X-Admin-Token':TOKEN}, body:form
+    });
+    const d = await r.json();
+    if(d.ok){
+      document.getElementById('capa-status').textContent='✓ Capa enviada!';
+      document.getElementById('ed-capa').value=d.url;
+      toast('Capa enviada!','ok');
+    } else {
+      document.getElementById('capa-status').textContent='Erro: '+(d.erro||'');
+      toast(d.erro||'Erro ao enviar capa','err');
+    }
+  }catch(e){
+    document.getElementById('capa-status').textContent='Erro de conexão';
+  }
+}
+
+// ── UTILS ─────────────────────────────────────────────────
+function esc(s){ const d=document.createElement('div');d.textContent=s||'';return d.innerHTML; }
+function toast(msg, tipo='ok'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show '+(tipo==='err'?'err':'ok');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── INIT ──────────────────────────────────────────────────
+if(TOKEN){
+  document.getElementById('tela-login').style.display='none';
+  document.getElementById('tela-admin').style.display='block';
+  carregarLivros();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "gato-preto",
+    "slug": "gato-preto",
+    "titulo": "O Gato Preto",
+    "autor": "Edgar Allan Poe",
+    "ano": "1843",
+    "editora": "The United States Saturday Post",
+    "categoria": "suspense",
+    "sinopse": "Um homem narra como sua obsessão por um gato preto o leva à loucura e ao crime. Um dos contos mais perturbadores de Poe, explorando culpa, violência e o colapso da sanidade.",
+    "capa_url": "",
+    "serie": "Contos de Edgar Allan Poe",
+    "num_serie": 1,
+    "badge": "",
+    "publicado": true,
+    "destaque": true,
+    "pdf_key": "",
+    "paginas": 0,
+    "paginas_texto": [],
+    "criado_em": "2026-04-02T00:00:00"
+  },
+  {
+    "id": "coracao-delator",
+    "slug": "coracao-delator",
+    "titulo": "O Coração Delator",
+    "autor": "Edgar Allan Poe",
+    "ano": "1843",
+    "editora": "The Pioneer",
+    "categoria": "suspense",
+    "sinopse": "Um narrador insiste que está são enquanto descreve como assassinou um velho por causa de seu olho de abutre. O som do coração batendo sob o assoalho o conduz à confissão.",
+    "capa_url": "",
+    "serie": "Contos de Edgar Allan Poe",
+    "num_serie": 2,
+    "badge": "",
+    "publicado": true,
+    "destaque": false,
+    "pdf_key": "",
+    "paginas": 0,
+    "paginas_texto": [],
+    "criado_em": "2026-04-02T00:00:00"
+  }
+]
