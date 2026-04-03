@@ -325,15 +325,37 @@ def admin_upload_capa(livro_id):
         return jsonify({'ok': False, 'erro': 'Livro não encontrado'}), 404
 
     arquivo = request.files['capa']
-    ext     = arquivo.filename.rsplit('.', 1)[-1].lower() if '.' in arquivo.filename else 'jpg'
-    key     = f'capas/{livro_id}/capa.{ext}'
-    dados   = arquivo.read()
+    ext_orig = arquivo.filename.rsplit('.', 1)[-1].lower() if '.' in arquivo.filename else 'jpg'
+    dados    = arquivo.read()
+
+    # Converter SVG ou qualquer formato para JPG usando Pillow
+    try:
+        from PIL import Image
+        import io
+        if ext_orig == 'svg':
+            # SVG não suportado pelo Pillow — salvar como SVG mesmo mas avisar
+            ext = 'svg'
+            content_type = 'image/svg+xml'
+        else:
+            img = Image.open(io.BytesIO(dados))
+            if img.mode in ('RGBA', 'P'):
+                img = img.convert('RGB')
+            buf = io.BytesIO()
+            img.save(buf, format='JPEG', quality=90)
+            dados = buf.getvalue()
+            ext = 'jpg'
+            content_type = 'image/jpeg'
+    except Exception:
+        ext = ext_orig
+        content_type = f'image/{ext_orig}'
+
+    key  = f'capas/{livro_id}/capa.{ext}'
 
     r2 = get_r2()
     if r2:
         try:
             r2.put_object(Bucket=R2_BUCKET, Key=key, Body=dados,
-                          ContentType=f'image/{ext}', ACL='public-read')
+                          ContentType=content_type)
             url = f'{R2_PUBLIC}/{key}' if R2_PUBLIC else ''
             livro['capa_url'] = url
             salvar_livros(livros)
