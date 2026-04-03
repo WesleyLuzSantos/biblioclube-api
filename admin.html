@@ -15,7 +15,15 @@
   --green:#2d6a40;--red:#6a2020;
   --serif:'Cormorant Garamond',serif;--sans:'Syne',sans-serif;
 }
-body{font-family:var(--sans);background:var(--void);color:var(--paper);min-height:100vh}
+body{font-family:var(--sans);background:var(--void);color:var(--paper);min-height:100vh;transition:background .3s,color .3s}
+body.claro{--void:#faf8f3;--deep:#f2ede3;--layer:#fff;--surface:#f5f0e8;--edge:#e0d8cc;--dim:#8a8070;--smoke:rgba(15,14,11,.55);--ash:rgba(15,14,11,.78);--paper:#0f0e0b;--ember:#c45c2a;--flame:#a84820}
+body.claro .login-box{background:var(--deep)}
+body.claro .stat-card{background:var(--deep)}
+body.claro .livros-table td{border-bottom-color:rgba(0,0,0,.06)}
+body.claro .livros-table tr:hover td{background:var(--layer)}
+body.claro .modal-box{background:var(--deep)}
+body.claro .campo input,.claro .fg input,.claro .fg select,.claro .fg textarea{background:var(--layer);color:var(--paper);border-color:var(--edge)}
+body.claro .admin-header{background:var(--deep);border-bottom-color:var(--edge)}
 
 /* LOGIN */
 #tela-login{
@@ -146,6 +154,7 @@ body{font-family:var(--sans);background:var(--void);color:var(--paper);min-heigh
     </div>
     <div style="display:flex;gap:.5rem">
       <a href="/" target="_blank" class="btn-sm">Ver site ↗</a>
+      <button class="btn-sm" onclick="toggleAdminModo()" id="btn-admin-modo">☀ Claro</button>
       <button class="btn-sm" onclick="abrirModalSenha()">Alterar senha</button>
       <button class="btn-sm danger" onclick="logout()">Sair</button>
     </div>
@@ -555,6 +564,21 @@ async function alterarSenha(){
     toast(d.erro||'Erro ao alterar senha','err');
   }
 }
+
+// ── MODO CLARO/NOTURNO ────────────────────────────────────
+function toggleAdminModo(){
+  const claro = document.body.classList.toggle('claro');
+  const btn = document.getElementById('btn-admin-modo');
+  if(btn) btn.textContent = claro ? '☽ Noturno' : '☀ Claro';
+  localStorage.setItem('bc_admin_modo', claro?'claro':'noturno');
+}
+(function(){
+  if(localStorage.getItem('bc_admin_modo')==='claro'){
+    document.body.classList.add('claro');
+    const btn = document.getElementById('btn-admin-modo');
+    if(btn) btn.textContent='☽ Noturno';
+  }
+})();
 
 // ── INIT ──────────────────────────────────────────────────
 if(TOKEN){
