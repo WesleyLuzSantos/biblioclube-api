@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["python313", "postgresql_15", "libpq"]
+nixPkgs = ["python312", "postgresql_15"]
 
-[phases.install]
-cmds = ["pip install -r requirements.txt"]
+[variables]
+PYTHON_VERSION = "3.12"
