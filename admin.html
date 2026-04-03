@@ -289,6 +289,7 @@ body.claro .admin-header{background:var(--deep);border-bottom-color:var(--edge)}
       </div>
     </div>
     <div class="modal-footer">
+      <button class="btn-sm danger" onclick="excluirPagina()">Excluir página</button>
       <button class="btn-sm" onclick="fecharModalPaginas()">Fechar</button>
       <button class="btn-sm btn-primary" onclick="salvarPagina()">Salvar página</button>
     </div>
@@ -641,6 +642,39 @@ async function salvarPagina(){
   const d = await r.json();
   if(d.ok){ toast('Página '+num+' salva!','ok'); }
   else { toast(d.erro||'Erro ao salvar','err'); }
+}
+
+async function excluirPagina(){
+  const num = parseInt(document.getElementById('pag-select').value);
+  if(!confirm(`Excluir a página ${num}? O texto será perdido.`)) return;
+
+  // Remover da lista local e renumerar
+  _paginasAtual = _paginasAtual
+    .filter(p => p.num !== num)
+    .map((p, i) => ({...p, num: i + 1}));
+
+  // Salvar todas via API
+  const r = await fetch(API+'/api/admin/livros/'+_livroIdAtual, {
+    method:'PUT',
+    headers:{'Content-Type':'application/json','X-Admin-Token':TOKEN},
+    body: JSON.stringify({
+      paginas: _paginasAtual.length,
+      paginas_texto: _paginasAtual
+    })
+  });
+  const d = await r.json();
+  if(d.ok){
+    toast('Página '+num+' excluída!','ok');
+    // Atualizar select
+    const sel = document.getElementById('pag-select');
+    sel.innerHTML = _paginasAtual.map(p=>`<option value="${p.num}">Página ${p.num}</option>`).join('');
+    document.getElementById('pag-counter').textContent = `${_paginasAtual.length} páginas no total`;
+    if(_paginasAtual.length > 0) carregarPaginaEdicao();
+    else fecharModalPaginas();
+    carregarLivros();
+  } else {
+    toast(d.erro||'Erro ao excluir','err');
+  }
 }
 
 function fecharModalPaginas(){
