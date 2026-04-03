@@ -268,6 +268,33 @@ body.claro .admin-header{background:var(--deep);border-bottom-color:var(--edge)}
   </div>
 </div>
 
+<!-- MODAL EDITAR PÁGINAS -->
+<div class="modal-overlay" id="modal-paginas">
+  <div class="modal-box" style="max-width:700px">
+    <div class="modal-header">
+      <div class="modal-title" id="pag-titulo">Editar Páginas</div>
+      <button class="modal-close" onclick="fecharModalPaginas()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:.7rem;color:var(--dim);margin-bottom:.75rem">
+        Selecione uma página para editar o texto. Útil para corrigir títulos misturados com o texto ou erros de OCR.
+      </div>
+      <div style="display:flex;gap:.5rem;margin-bottom:.75rem;align-items:center">
+        <select id="pag-select" onchange="carregarPaginaEdicao()" style="flex:1;background:var(--layer);border:1px solid var(--edge);border-radius:4px;padding:.5rem;color:var(--paper);font-family:var(--sans);font-size:.84rem"></select>
+        <span id="pag-counter" style="font-size:.72rem;color:var(--dim);white-space:nowrap"></span>
+      </div>
+      <div class="fg">
+        <label>Texto da página</label>
+        <textarea id="pag-texto" style="min-height:300px;font-family:var(--serif);font-size:.9rem;font-style:italic;line-height:1.7"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="fecharModalPaginas()">Fechar</button>
+      <button class="btn-sm btn-primary" onclick="salvarPagina()">Salvar página</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL ALTERAR SENHA -->
 <div class="modal-overlay" id="modal-senha">
   <div class="modal-box" style="max-width:380px">
@@ -364,6 +391,7 @@ function renderLivros(){
         <div class="acoes">
           <button class="btn-sm" onclick="editarLivro('${l.id}')">Editar</button>
           <button class="btn-sm btn-primary" onclick="abrirUploadPdf('${l.id}')">PDF</button>
+          ${l.paginas>0?`<button class="btn-sm" onclick="editarPaginas('${l.id}','${l.titulo.replace(/'/g,"\\'")}')">Páginas</button>`:''}
           <button class="btn-sm danger" onclick="excluirLivro('${l.id}')">Excluir</button>
         </div>
       </td>
@@ -563,6 +591,62 @@ async function alterarSenha(){
   } else {
     toast(d.erro||'Erro ao alterar senha','err');
   }
+}
+
+// ── EDITAR PÁGINAS ────────────────────────────────────────
+let _paginasAtual = [];
+let _livroIdAtual = '';
+
+async function editarPaginas(livroId, titulo){
+  _livroIdAtual = livroId;
+  document.getElementById('pag-titulo').textContent = 'Páginas: ' + titulo;
+  document.getElementById('pag-texto').value = 'Carregando...';
+  document.getElementById('modal-paginas').classList.add('open');
+
+  const r = await fetch(API+'/api/livros/'+livroId+'/paginas');
+  const d = await r.json();
+  if(!d.ok){ toast('Erro ao carregar páginas','err'); return; }
+
+  _paginasAtual = d.paginas;
+  const sel = document.getElementById('pag-select');
+  sel.innerHTML = _paginasAtual.map(p=>`<option value="${p.num}">Página ${p.num}</option>`).join('');
+  document.getElementById('pag-counter').textContent = `${_paginasAtual.length} páginas no total`;
+  carregarPaginaEdicao();
+}
+
+function carregarPaginaEdicao(){
+  const num = parseInt(document.getElementById('pag-select').value);
+  const pag = _paginasAtual.find(p=>p.num===num);
+  if(pag) document.getElementById('pag-texto').value = pag.texto;
+}
+
+async function salvarPagina(){
+  const num = parseInt(document.getElementById('pag-select').value);
+  const texto = document.getElementById('pag-texto').value.trim();
+  if(!texto){ toast('Texto não pode estar vazio','err'); return; }
+
+  // Atualizar localmente
+  const pag = _paginasAtual.find(p=>p.num===num);
+  if(pag) pag.texto = texto;
+
+  // Salvar todas as páginas via API
+  const r = await fetch(API+'/api/admin/livros/'+_livroIdAtual, {
+    method:'PUT',
+    headers:{'Content-Type':'application/json','X-Admin-Token':TOKEN},
+    body: JSON.stringify({
+      paginas: _paginasAtual.length,
+      paginas_texto: _paginasAtual
+    })
+  });
+  const d = await r.json();
+  if(d.ok){ toast('Página '+num+' salva!','ok'); }
+  else { toast(d.erro||'Erro ao salvar','err'); }
+}
+
+function fecharModalPaginas(){
+  document.getElementById('modal-paginas').classList.remove('open');
+  _paginasAtual = [];
+  _livroIdAtual = '';
 }
 
 // ── MODO CLARO/NOTURNO ────────────────────────────────────
