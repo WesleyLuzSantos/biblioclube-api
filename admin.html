@@ -178,9 +178,9 @@ body.claro .admin-header{background:var(--deep);border-bottom-color:var(--edge)}
       <thead>
         <tr>
           <th>Título</th>
-          <th>Autor</th>
           <th>Categoria</th>
           <th>PDF</th>
+          <th>👁 Leituras</th>
           <th>Status</th>
           <th>Ações</th>
         </tr>
@@ -233,6 +233,18 @@ body.claro .admin-header{background:var(--deep);border-bottom-color:var(--edge)}
         <div class="fg" style="display:flex;align-items:center;gap:.5rem">
           <input type="checkbox" id="ed-dest" style="width:auto">
           <label for="ed-dest" style="font-size:.82rem;text-transform:none;letter-spacing:0;cursor:pointer;color:var(--ash)">Em destaque</label>
+        </div>
+        <div class="fg">
+          <label>Destaque até (data de expiração)</label>
+          <input type="date" id="ed-destaque-ate" style="background:var(--layer);border:1px solid var(--edge);border-radius:4px;padding:.4rem .6rem;color:var(--paper);font-family:var(--sans);font-size:.84rem;width:100%">
+        </div>
+        <div class="fg" style="display:flex;align-items:center;gap:.5rem">
+          <input type="checkbox" id="ed-pago" style="width:auto" onchange="toggleAfiliado(this.checked)">
+          <label for="ed-pago" style="font-size:.82rem;text-transform:none;letter-spacing:0;cursor:pointer;color:var(--ash)">📦 Livro pago (afiliado)</label>
+        </div>
+        <div class="fg full" id="fg-afiliado" style="display:none">
+          <label>Link de afiliado (Amazon, Americanas...)</label>
+          <input type="url" id="ed-link-afiliado" placeholder="https://www.amazon.com.br/dp/...">
         </div>
       </div>
 
@@ -383,10 +395,15 @@ function renderLivros(){
   vazio.style.display='none';
   tbody.innerHTML = LIVROS.map(l=>`
     <tr>
-      <td><div class="livro-titulo-cel">${esc(l.titulo)}</div></td>
-      <td>${esc(l.autor)}</td>
+      <td>
+        <div class="livro-titulo-cel">${esc(l.titulo)}</div>
+        <div style="font-size:.72rem;color:var(--dim)">${esc(l.autor)}</div>
+        ${l.pago?'<span style="font-size:.6rem;background:#fef3c7;color:#92400e;border-radius:3px;padding:1px 5px;font-weight:700">💰 PAGO</span>':''}
+        ${l.destaque?`<span style="font-size:.6rem;background:var(--rust2);color:var(--rust);border-radius:3px;padding:1px 5px;font-weight:700">⭐${l.destaque_ate?' até '+l.destaque_ate:''}</span>`:''}
+      </td>
       <td>${esc(l.categoria)}</td>
       <td>${l.pdf_key?'<span class="pub-badge sim">✓ PDF</span>':'<span class="pub-badge nao">Sem PDF</span>'}</td>
+      <td style="text-align:center;font-weight:700;color:${(l.leituras||0)>0?'var(--ember)':'var(--dim)'}">${l.leituras||0}</td>
       <td>${l.publicado?'<span class="pub-badge sim">Publicado</span>':'<span class="pub-badge nao">Rascunho</span>'}</td>
       <td>
         <div class="acoes">
@@ -411,6 +428,10 @@ function abrirModal(id){
   document.getElementById('ed-numSerie').value='0';
   document.getElementById('ed-pub').checked=true;
   document.getElementById('ed-dest').checked=false;
+  document.getElementById('ed-destaque-ate').value='';
+  document.getElementById('ed-pago').checked=false;
+  document.getElementById('ed-link-afiliado').value='';
+  toggleAfiliado(false);
   document.getElementById('upload-pdf-section').style.display='none';
   document.getElementById('capa-status').textContent='';
   document.getElementById('modal-livro').classList.add('open');
@@ -426,6 +447,10 @@ function editarLivro(id){
   document.getElementById('ed-ano').value=l.ano||'';
   document.getElementById('ed-editora').value=l.editora||'';
   document.getElementById('ed-slug').value=l.slug||'';
+  document.getElementById('ed-destaque-ate').value=l.destaque_ate||'';
+  document.getElementById('ed-pago').checked=!!l.pago;
+  document.getElementById('ed-link-afiliado').value=l.link_afiliado||'';
+  toggleAfiliado(!!l.pago);
   document.getElementById('ed-capa').value=l.capa_url||'';
   document.getElementById('ed-sinopse').value=l.sinopse||'';
   document.getElementById('ed-serie').value=l.serie||'';
@@ -457,8 +482,11 @@ async function salvarLivro(){
     badge:     document.getElementById('ed-badge').value.trim(),
     num_serie: parseInt(document.getElementById('ed-numSerie').value)||0,
     slug:      document.getElementById('ed-slug').value.trim(),
-    publicado: document.getElementById('ed-pub').checked,
-    destaque:  document.getElementById('ed-dest').checked,
+    publicado:     document.getElementById('ed-pub').checked,
+    destaque:      document.getElementById('ed-dest').checked,
+    destaque_ate:  document.getElementById('ed-destaque-ate').value || null,
+    pago:          document.getElementById('ed-pago').checked,
+    link_afiliado: document.getElementById('ed-link-afiliado').value.trim(),
   };
   if(!dados.titulo || !dados.autor){ toast('Título e autor são obrigatórios','err'); return; }
 
@@ -476,6 +504,11 @@ async function salvarLivro(){
   } else {
     toast(d.erro||'Erro ao salvar','err');
   }
+}
+
+function toggleAfiliado(pago){
+  const fg = document.getElementById('fg-afiliado');
+  if(fg) fg.style.display = pago ? 'block' : 'none';
 }
 
 async function excluirLivro(id){

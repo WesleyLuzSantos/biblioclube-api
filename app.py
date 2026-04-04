@@ -10,15 +10,21 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 
 app = Flask(__name__)
-CORS(app, origins=[
-    'https://biblioclube.com.br',
-    'https://www.biblioclube.com.br',
-    'https://biblioclube.pages.dev',
-    'https://web-production-cb7fd.up.railway.app',
-    'http://localhost:3000',
-    'http://localhost:5000',
-    'http://127.0.0.1:5500',
-])
+CORS(app, 
+    origins=[
+        'https://biblioclube.com.br',
+        'https://www.biblioclube.com.br',
+        'https://biblioclube.pages.dev',
+        'https://escolas.biblioclube.com.br',
+        'https://web-production-cb7fd.up.railway.app',
+        'http://localhost:3000',
+        'http://localhost:5000',
+        'http://127.0.0.1:5500',
+    ],
+    supports_credentials=True,
+    allow_headers=['Content-Type', 'X-Admin-Token', 'Authorization'],
+    methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+)
 
 # ── CONFIG ─────────────────────────────────────────────────────────
 ADMIN_SENHA  = os.environ.get('ADMIN_SENHA', 'biblioclube2026')
@@ -39,23 +45,27 @@ def init_db():
         with conn.cursor() as cur:
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS livros (
-                    id          TEXT PRIMARY KEY,
-                    slug        TEXT UNIQUE,
-                    titulo      TEXT NOT NULL,
-                    autor       TEXT NOT NULL,
-                    ano         TEXT DEFAULT '',
-                    editora     TEXT DEFAULT '',
-                    categoria   TEXT DEFAULT 'classico',
-                    sinopse     TEXT DEFAULT '',
-                    capa_url    TEXT DEFAULT '',
-                    serie       TEXT DEFAULT '',
-                    num_serie   INTEGER DEFAULT 0,
-                    badge       TEXT DEFAULT '',
-                    publicado   BOOLEAN DEFAULT TRUE,
-                    destaque    BOOLEAN DEFAULT FALSE,
-                    pdf_key     TEXT DEFAULT '',
-                    paginas     INTEGER DEFAULT 0,
-                    criado_em   TIMESTAMP DEFAULT NOW()
+                    id            TEXT PRIMARY KEY,
+                    slug          TEXT UNIQUE,
+                    titulo        TEXT NOT NULL,
+                    autor         TEXT NOT NULL,
+                    ano           TEXT DEFAULT '',
+                    editora       TEXT DEFAULT '',
+                    categoria     TEXT DEFAULT 'classico',
+                    sinopse       TEXT DEFAULT '',
+                    capa_url      TEXT DEFAULT '',
+                    serie         TEXT DEFAULT '',
+                    num_serie     INTEGER DEFAULT 0,
+                    badge         TEXT DEFAULT '',
+                    publicado     BOOLEAN DEFAULT TRUE,
+                    destaque      BOOLEAN DEFAULT FALSE,
+                    destaque_ate  DATE DEFAULT NULL,
+                    pago          BOOLEAN DEFAULT FALSE,
+                    link_afiliado TEXT DEFAULT '',
+                    pdf_key       TEXT DEFAULT '',
+                    paginas       INTEGER DEFAULT 0,
+                    leituras      INTEGER DEFAULT 0,
+                    criado_em     TIMESTAMP DEFAULT NOW()
                 );
                 CREATE TABLE IF NOT EXISTS paginas (
                     id         SERIAL PRIMARY KEY,
@@ -64,6 +74,11 @@ def init_db():
                     texto      TEXT,
                     UNIQUE(livro_id, num)
                 );
+                -- Adicionar colunas novas se já existir tabela antiga
+                ALTER TABLE livros ADD COLUMN IF NOT EXISTS destaque_ate DATE DEFAULT NULL;
+                ALTER TABLE livros ADD COLUMN IF NOT EXISTS pago BOOLEAN DEFAULT FALSE;
+                ALTER TABLE livros ADD COLUMN IF NOT EXISTS link_afiliado TEXT DEFAULT '';
+                ALTER TABLE livros ADD COLUMN IF NOT EXISTS leituras INTEGER DEFAULT 0;
             """)
             conn.commit()
     print("Banco inicializado")
@@ -122,13 +137,21 @@ def listar_livros():
                 sql += " ORDER BY criado_em DESC"
                 cur.execute(sql, params)
                 rows = cur.fetchall()
+        from datetime import date as _date
+        hoje = _date.today()
         livros = [{
             'id': r['id'], 'slug': r['slug'] or r['id'],
             'titulo': r['titulo'], 'autor': r['autor'],
             'ano': r['ano'], 'editora': r['editora'],
             'categoria': r['categoria'], 'sinopse': r['sinopse'],
             'capa_url': r['capa_url'], 'paginas': r['paginas'],
-            'tem_pdf': bool(r['pdf_key']), 'destaque': r['destaque'],
+            'tem_pdf': bool(r['pdf_key']),
+            # Destaque válido só se não tiver data ou data ainda não venceu
+            'destaque': bool(r['destaque']) and (not r['destaque_ate'] or r['destaque_ate'] >= hoje),
+            'destaque_ate': r['destaque_ate'].isoformat() if r['destaque_ate'] else None,
+            'pago': bool(r['pago']),
+            'link_afiliado': r['link_afiliado'] or '',
+            'leituras': r['leituras'] or 0,
             'serie': r['serie'], 'num_serie': r['num_serie'], 'badge': r['badge'],
         } for r in rows]
         return jsonify({'ok': True, 'livros': livros, 'total': len(livros)})
@@ -147,6 +170,8 @@ def detalhe_livro(livro_id):
                 r = cur.fetchone()
         if not r:
             return jsonify({'ok': False, 'erro': 'Livro não encontrado'}), 404
+        from datetime import date as _date2
+        hoje2 = _date2.today()
         return jsonify({'ok': True, 'livro': {
             'id': r['id'], 'slug': r['slug'] or r['id'],
             'titulo': r['titulo'], 'autor': r['autor'],
@@ -154,8 +179,26 @@ def detalhe_livro(livro_id):
             'categoria': r['categoria'], 'sinopse': r['sinopse'],
             'capa_url': r['capa_url'], 'paginas': r['paginas'],
             'tem_pdf': bool(r['pdf_key']),
+            'destaque': bool(r['destaque']) and (not r['destaque_ate'] or r['destaque_ate'] >= hoje2),
+            'pago': bool(r['pago']),
+            'link_afiliado': r['link_afiliado'] or '',
+            'leituras': r['leituras'] or 0,
             'serie': r['serie'], 'num_serie': r['num_serie'], 'badge': r['badge'],
         }})
+    except Exception as e:
+        return jsonify({'ok': False, 'erro': str(e)}), 500
+
+
+@app.route('/api/livros/<livro_id>/registrar_leitura', methods=['POST'])
+def registrar_leitura(livro_id):
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE livros SET leituras = COALESCE(leituras,0) + 1 WHERE id = %s OR slug = %s",
+                    (livro_id, livro_id))
+                conn.commit()
+        return jsonify({'ok': True})
     except Exception as e:
         return jsonify({'ok': False, 'erro': str(e)}), 500
 
@@ -219,13 +262,16 @@ def admin_criar():
                 cur.execute("""
                     INSERT INTO livros
                       (id,slug,titulo,autor,ano,editora,categoria,sinopse,
-                       capa_url,serie,num_serie,badge,publicado,destaque)
-                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *
+                       capa_url,serie,num_serie,badge,publicado,destaque,
+                       destaque_ate,pago,link_afiliado)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *
                 """, (livro_id, slug, d['titulo'], d['autor'],
                       d.get('ano',''), d.get('editora',''), d.get('categoria','classico'),
                       d.get('sinopse',''), d.get('capa_url',''),
                       d.get('serie',''), int(d.get('num_serie',0) or 0),
-                      d.get('badge',''), bool(d.get('publicado',True)), bool(d.get('destaque',False))))
+                      d.get('badge',''), bool(d.get('publicado',True)), bool(d.get('destaque',False)),
+                      d.get('destaque_ate') or None,
+                      bool(d.get('pago',False)), d.get('link_afiliado','')))
                 livro = dict(cur.fetchone())
                 conn.commit()
         livro['tem_pdf'] = False
@@ -239,7 +285,8 @@ def admin_editar(livro_id):
     if not verificar_admin(): return jsonify({'ok': False}), 401
     d = request.get_json() or {}
     campos = ['titulo','autor','ano','editora','categoria','sinopse','capa_url',
-              'serie','num_serie','badge','publicado','destaque','slug']
+              'serie','num_serie','badge','publicado','destaque','destaque_ate',
+              'pago','link_afiliado','slug']
     sets = [f"{c} = %s" for c in campos if c in d]
     vals = [d[c] for c in campos if c in d]
     if not sets and 'paginas_texto' not in d:
