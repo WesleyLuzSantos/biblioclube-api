@@ -145,7 +145,7 @@ def listar_livros():
             'ano': r['ano'], 'editora': r['editora'],
             'categoria': r['categoria'], 'sinopse': r['sinopse'],
             'capa_url': r['capa_url'], 'paginas': r['paginas'],
-            'tem_pdf': bool(r['pdf_key']),
+            'tem_pdf': bool(r['paginas'] and int(r['paginas']) > 0),
             # Destaque válido só se não tiver data ou data ainda não venceu
             'destaque': bool(r['destaque']) and (not r['destaque_ate'] or r['destaque_ate'] >= hoje),
             'destaque_ate': r['destaque_ate'].isoformat() if r['destaque_ate'] else None,
@@ -178,7 +178,7 @@ def detalhe_livro(livro_id):
             'ano': r['ano'], 'editora': r['editora'],
             'categoria': r['categoria'], 'sinopse': r['sinopse'],
             'capa_url': r['capa_url'], 'paginas': r['paginas'],
-            'tem_pdf': bool(r['pdf_key']),
+            'tem_pdf': bool(r['paginas'] and int(r['paginas']) > 0),
             'destaque': bool(r['destaque']) and (not r['destaque_ate'] or r['destaque_ate'] >= hoje2),
             'pago': bool(r['pago']),
             'link_afiliado': r['link_afiliado'] or '',
